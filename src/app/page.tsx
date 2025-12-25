@@ -1,101 +1,112 @@
-import Image from "next/image";
+"use client";
 
+import { useState, useCallback } from "react";
+import { KnowledgeSidebar } from "@/components/chat/KnowledgeSidebar";
+import { ChatInterface } from "@/components/chat/ChatInterface";
+import { ProjectSelector } from "@/components/chat/ProjectSelector";
+import { SnippetManager } from "@/components/chat/SnippetManager";
+import { ConversationList } from "@/components/chat/ConversationList";
+import { Vault, Settings, ChevronDown, ChevronUp } from "lucide-react";
+
+/**
+ * ComfyClaude OS - Main Page
+ * 
+ * The Business Cockpit layout mejorado:
+ * - Sidebar más organizado con secciones colapsables
+ * - Knowledge Base compacto
+ * - Chat principal
+ */
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [knowledgeContext, setKnowledgeContext] = useState<string>("");
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [isVaultOpen, setIsVaultOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [showKnowledge, setShowKnowledge] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleNewConversation = useCallback(async () => {
+    // Reset para nueva conversación (no crear en DB hasta primer mensaje)
+    setConversationId(null);
+  }, []);
+
+  const handleSelectConversation = useCallback((id: string | null) => {
+    setConversationId(id);
+  }, []);
+
+  return (
+    <div className="flex h-screen bg-zinc-950 text-zinc-100">
+      {/* Left Sidebar - Fixed width */}
+      <div className="w-64 border-r border-zinc-800 flex flex-col bg-zinc-900/30">
+        {/* Conversations List - Scrollable */}
+        <div className="flex-1 overflow-hidden">
+          <ConversationList
+            key={refreshKey}
+            projectId={projectId}
+            selectedConversationId={conversationId}
+            onSelectConversation={handleSelectConversation}
+            onNewConversation={handleNewConversation}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        {/* Knowledge Base - Collapsible */}
+        <div className="border-t border-zinc-800">
+          <button
+            onClick={() => setShowKnowledge(!showKnowledge)}
+            className="w-full px-3 py-2 flex items-center justify-between text-xs font-medium text-zinc-500 uppercase tracking-wider hover:bg-zinc-800/50 transition-colors"
+          >
+            <span>Base de Conocimiento</span>
+            {showKnowledge ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
+          </button>
+          {showKnowledge && (
+            <div className="max-h-40 overflow-y-auto border-t border-zinc-800/50">
+              <KnowledgeSidebar
+                contextString={knowledgeContext}
+                onContextChange={setKnowledgeContext}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Controls - Compact */}
+        <div className="p-3 border-t border-zinc-800 space-y-2">
+          <ProjectSelector
+            selectedProjectId={projectId}
+            onProjectChange={(id) => {
+              setProjectId(id);
+              setConversationId(null);
+            }}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+          <button
+            onClick={() => setIsVaultOpen(true)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-800 transition-colors text-sm"
+          >
+            <Vault className="h-4 w-4 text-purple-400" />
+            <span>La Bóveda</span>
+            <Settings className="h-3 w-3 ml-auto text-zinc-500" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Chat Interface */}
+      <ChatInterface
+        key={conversationId || "new"}
+        knowledgeContext={knowledgeContext}
+        projectId={projectId}
+        conversationId={conversationId}
+        onConversationCreated={(id) => {
+          setConversationId(id);
+          setRefreshKey((k) => k + 1);
+        }}
+        className="flex-1"
+      />
+
+      {/* Vault Modal */}
+      <SnippetManager isOpen={isVaultOpen} onClose={() => setIsVaultOpen(false)} />
     </div>
   );
 }

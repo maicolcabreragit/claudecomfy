@@ -1,0 +1,171 @@
+// ComfyClaude OS / ComfyLink Ecosystem - Database Schema
+// PostgreSQL via Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// CORE USER & AUTHENTICATION
+// =============================================================================
+
+model User {
+  id             String          @id @default(uuid())
+  email          String?         @unique
+  name           String?
+  conversations  Conversation[]
+  knowledgeBases KnowledgeBase[]
+  projects       Project[]
+  snippets       Snippet[]
+  workflows      Workflow[]
+  apiKeys        ApiKey[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+// =============================================================================
+// AGENCY MODE - Project Management
+// =============================================================================
+
+model Project {
+  id            String         @id @default(uuid())
+  name          String
+  description   String?        @db.Text
+  status        ProjectStatus  @default(ACTIVE)
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+}
+
+// =============================================================================
+// CONVERSATIONS & MESSAGES
+// =============================================================================
+
+model Conversation {
+  id        String    @id @default(uuid())
+  title     String?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?   // Optional: Link to project for Agency Mode
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String       // 'user' | 'assistant'
+  content        String       @db.Text
+  reasoning      String?      @db.Text // Extended thinking content from Opus 4.5
+  images         String[]     // Array of image URLs for vision
+  toolCalls      Json?        // Store tool call results (web search, etc.)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+// =============================================================================
+// KNOWLEDGE BASE - Context Injection
+// =============================================================================
+
+model KnowledgeBase {
+  id         String   @id @default(uuid())
+  name       String   // Filename or custom name
+  content    String   @db.Text // Parsed context from Claude.ai exports
+  summary    String?  @db.Text // AI-generated summary for quick reference
+  tokenCount Int?     // Estimated token count for cache budgeting
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive   Boolean  @default(true) // Toggle for context injection
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// =============================================================================
+// ASSET VAULT - Snippets & Quick Commands
+// =============================================================================
+
+model Snippet {
+  id        String      @id @default(uuid())
+  trigger   String      // e.g., "/skin", "/fix-node"
+  content   String      @db.Text
+  type      SnippetType
+  tags      String[]    // For filtering and search
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, trigger]) // Each user has unique triggers
+  @@index([userId])
+  @@index([type])
+}
+
+enum SnippetType {
+  PROMPT // Reusable prompt templates
+  CODE   // Code snippets for ComfyUI
+  FIX    // Common fixes/solutions
+}
+
+// =============================================================================
+// CLOUD SANITIZER - Workflow Management
+// =============================================================================
+
+model Workflow {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?  @db.Text
+  jsonContent  Json     // ComfyUI workflow JSON
+  isCloudReady Boolean  @default(false) // Sanitized for cloud execution
+  thumbnail    String?  // Optional preview image URL
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isCloudReady])
+}
+
+// =============================================================================
+// CHROME EXTENSION - API Key Management
+// =============================================================================
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  key       String    @unique // Secure random key
+  name      String    // e.g., "Chrome Laptop", "Work Desktop"
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastUsed  DateTime?
+  expiresAt DateTime? // Optional expiration
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([key])
+}
