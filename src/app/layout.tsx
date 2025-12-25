@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AppShell } from "@/components/layout";
 
 // Inter - La mejor fuente sans-serif para UI moderna
 const inter = Inter({
@@ -29,8 +30,9 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
 }
+

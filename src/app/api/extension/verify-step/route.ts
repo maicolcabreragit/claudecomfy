@@ -67,7 +67,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<VerifyStepRes
     const model = client.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Build prompt for verification
-    let prompt = `Eres un verificador de pasos de tutorial. El usuario debería haber completado este paso:
+    const prompt = `Eres un verificador de pasos de tutorial. El usuario debería haber completado este paso:
 
 PASO ESPERADO: "${expectedStep}"
 ${expectedElements ? `\nELEMENTOS ESPERADOS: ${expectedElements.join(", ")}` : ""}

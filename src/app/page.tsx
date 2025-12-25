@@ -6,15 +6,14 @@ import { ChatInterface } from "@/components/chat/ChatInterface";
 import { ProjectSelector } from "@/components/chat/ProjectSelector";
 import { SnippetManager } from "@/components/chat/SnippetManager";
 import { ConversationList } from "@/components/chat/ConversationList";
-import { Vault, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Archive, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
 /**
- * ComfyClaude OS - Main Page
+ * ComfyClaude OS - Chat Page
  * 
- * The Business Cockpit layout mejorado:
- * - Sidebar más organizado con secciones colapsables
- * - Knowledge Base compacto
- * - Chat principal
+ * Layout interno del chat con panel de contexto:
+ * - Panel izquierdo: Conversaciones + Knowledge Base + Proyecto
+ * - Panel derecho: Chat principal
  */
 export default function Home() {
   const [knowledgeContext, setKnowledgeContext] = useState<string>("");
@@ -24,8 +23,7 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [showKnowledge, setShowKnowledge] = useState(false);
 
-  const handleNewConversation = useCallback(async () => {
-    // Reset para nueva conversación (no crear en DB hasta primer mensaje)
+  const handleNewConversation = useCallback(() => {
     setConversationId(null);
   }, []);
 
@@ -34,10 +32,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-100">
-      {/* Left Sidebar - Fixed width */}
-      <div className="w-64 border-r border-zinc-800 flex flex-col bg-zinc-900/30">
-        {/* Conversations List - Scrollable */}
+    <div className="flex h-full">
+      {/* Chat Context Panel */}
+      <div className="w-64 border-r border-surface-border flex flex-col bg-surface-base">
+        {/* Conversations */}
         <div className="flex-1 overflow-hidden">
           <ConversationList
             key={refreshKey}
@@ -48,13 +46,16 @@ export default function Home() {
           />
         </div>
 
-        {/* Knowledge Base - Collapsible */}
-        <div className="border-t border-zinc-800">
+        {/* Knowledge Base Toggle */}
+        <div className="border-t border-surface-border">
           <button
             onClick={() => setShowKnowledge(!showKnowledge)}
-            className="w-full px-3 py-2 flex items-center justify-between text-xs font-medium text-zinc-500 uppercase tracking-wider hover:bg-zinc-800/50 transition-colors"
+            className="w-full px-3 py-2 flex items-center justify-between text-xs font-medium text-zinc-500 uppercase tracking-wider hover:bg-surface-elevated transition-colors"
           >
-            <span>Base de Conocimiento</span>
+            <span className="flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3" />
+              Conocimiento
+            </span>
             {showKnowledge ? (
               <ChevronUp className="h-3 w-3" />
             ) : (
@@ -62,7 +63,7 @@ export default function Home() {
             )}
           </button>
           {showKnowledge && (
-            <div className="max-h-40 overflow-y-auto border-t border-zinc-800/50">
+            <div className="max-h-40 overflow-y-auto border-t border-surface-border-subtle">
               <KnowledgeSidebar
                 contextString={knowledgeContext}
                 onContextChange={setKnowledgeContext}
@@ -71,8 +72,8 @@ export default function Home() {
           )}
         </div>
 
-        {/* Bottom Controls - Compact */}
-        <div className="p-3 border-t border-zinc-800 space-y-2">
+        {/* Bottom: Project + Vault */}
+        <div className="p-3 border-t border-surface-border space-y-2">
           <ProjectSelector
             selectedProjectId={projectId}
             onProjectChange={(id) => {
@@ -83,16 +84,15 @@ export default function Home() {
 
           <button
             onClick={() => setIsVaultOpen(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:bg-zinc-800 transition-colors text-sm"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-elevated border border-surface-border hover:border-accent-purple/30 transition-colors text-sm"
           >
-            <Vault className="h-4 w-4 text-purple-400" />
+            <Archive className="h-4 w-4 text-accent-purple" />
             <span>La Bóveda</span>
-            <Settings className="h-3 w-3 ml-auto text-zinc-500" />
           </button>
         </div>
       </div>
 
-      {/* Main Chat Interface */}
+      {/* Main Chat */}
       <ChatInterface
         key={conversationId || "new"}
         knowledgeContext={knowledgeContext}
@@ -110,3 +110,4 @@ export default function Home() {
     </div>
   );
 }
+

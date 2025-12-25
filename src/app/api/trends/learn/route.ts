@@ -4,7 +4,7 @@
  * GET /api/trends/learn - Obtiene el último análisis generado
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
