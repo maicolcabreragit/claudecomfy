@@ -1,10 +1,51 @@
 # ComfyClaude OS - STATUS_REPORT.md
 
-**Última actualización:** 2025-12-25T18:04:00+01:00
+**Última actualización:** 2025-12-25T22:27:00+01:00
 
 ---
 
-## ✅ Build Status: SUCCESS (9 rutas API)
+## ✅ Build Status: SUCCESS
+
+---
+
+## 🆕 Sesión 25/12/2025 - ComfyLink & Trend Radar
+
+### ComfyLink Extension (Plasmo)
+
+| Feature                   | Estado |
+| ------------------------- | ------ |
+| Captura pantalla completa | ✅     |
+| Captura por zonas         | ✅     |
+| Botón flotante overlay    | ✅     |
+| Atajos: Ctrl+Shift+S/Z    | ✅     |
+| Integración chat          | ✅     |
+
+### Vision OCR (Google Cloud)
+
+| Feature                      | Estado |
+| ---------------------------- | ------ |
+| `/api/extension/ocr`         | ✅     |
+| `/api/extension/verify-step` | ✅     |
+| Ahorro ~90% tokens Claude    | ✅     |
+| Imágenes → Texto automático  | ✅     |
+
+### Trend Radar
+
+| Feature                              | Estado |
+| ------------------------------------ | ------ |
+| Google Custom Search Engine          | ✅     |
+| Dashboard `/trends`                  | ✅     |
+| Categorías: Flux, LoRA, Monetización | ✅     |
+| Heat Score automático                | ✅     |
+| Filtros temporales (d7, w1, m1)      | ✅     |
+
+### Learning Mode
+
+| Feature                          | Estado |
+| -------------------------------- | ------ |
+| Prompt 5K/mes goal               | ✅     |
+| Auto-research en temas AI Models | ✅     |
+| Fecha actual en prompt           | ✅     |
 
 ---
 
@@ -15,17 +56,17 @@
 | Componente          | Función                           |
 | ------------------- | --------------------------------- |
 | `ChatInterface.tsx` | Chat principal con persistencia   |
-| `MessageBubble`     | Burbujas de mensaje con animación |
+| `MessageBubble`     | Burbujas con OCR de imágenes      |
 | `ThinkingBlock.tsx` | Razonamiento extendido colapsable |
 
 ### Gestión de Tareas
 
-| Componente        | Función                                  |
-| ----------------- | ---------------------------------------- |
-| `TaskCard.tsx`    | Tarjeta con Aceptar/Rechazar/Editar      |
-| `TaskList.tsx`    | Lista con "Aceptar Todas" + glass effect |
-| `ProgressBar.tsx` | Fases: Planificación → Desarrollo        |
-| `parse-tasks.ts`  | Detección automática de tareas           |
+| Componente        | Función                             |
+| ----------------- | ----------------------------------- |
+| `TaskCard.tsx`    | Tarjeta con Aceptar/Rechazar/Editar |
+| `TaskList.tsx`    | Lista con "Aceptar Todas" + glass   |
+| `ProgressBar.tsx` | Fases: Planificación → Desarrollo   |
+| `parse-tasks.ts`  | Detección automática de tareas      |
 
 ### Sidebar
 
@@ -38,57 +79,56 @@
 
 ---
 
-## 🎨 UI/UX Premium
-
-### Fuentes
-
-- **Inter** - Sans-serif para UI
-- **JetBrains Mono** - Monospace para código
-
-### Animaciones
-
-```css
-fadeIn       - Aparición suave
-fadeInUp     - Mensajes desde abajo
-scaleIn      - Modales y tarjetas
-shimmer      - Loading skeleton
-glowPulse    - Brillo pulsante
-hover-lift   - Elevación al hover
-```
-
-### Efectos
-
-- Glass effect (glassmorphism)
-- Gradient borders (púrpura-rosa)
-- Smooth transitions (150-400ms)
-- Custom scrollbars
-
----
-
 ## 🔌 API Routes
 
-| Ruta                               | Métodos           |
-| ---------------------------------- | ----------------- |
-| `/api/chat`                        | POST (streaming)  |
-| `/api/conversations`               | GET, POST, DELETE |
-| `/api/conversations/[id]`          | GET, PATCH        |
-| `/api/conversations/[id]/messages` | POST              |
-| `/api/projects`                    | GET, POST         |
-| `/api/snippets`                    | GET, POST, DELETE |
+| Ruta                               | Métodos           | Descripción       |
+| ---------------------------------- | ----------------- | ----------------- |
+| `/api/chat`                        | POST              | Streaming con OCR |
+| `/api/conversations`               | GET, POST, DELETE | CRUD              |
+| `/api/conversations/[id]`          | GET, PATCH        | Detalle           |
+| `/api/conversations/[id]/messages` | POST              | Mensajes          |
+| `/api/projects`                    | GET, POST         | Agency Mode       |
+| `/api/snippets`                    | GET, POST, DELETE | La Bóveda         |
+| `/api/extension/screenshot`        | GET, POST         | Capturas          |
+| `/api/extension/ocr`               | POST              | Vision OCR        |
+| `/api/extension/verify-step`       | POST              | Gemini Flash      |
+| `/api/trends`                      | GET, POST         | Trend Radar       |
 
 ---
 
-## 💾 Persistencia
+## � Variables de Entorno
 
-- ✅ Conversaciones guardadas en PostgreSQL
-- ✅ Auto-creación de conversación al primer mensaje
-- ✅ Auto-título desde primer mensaje
-- ✅ Carga de mensajes al seleccionar conversación
+```properties
+# APIs configuradas
+ANTHROPIC_API_KEY=✅
+TAVILY_API_KEY=✅
+GOOGLE_APPLICATION_CREDENTIALS=✅
+GOOGLE_GEMINI_API_KEY=✅
+GOOGLE_CSE_ID=✅
+GOOGLE_CSE_API_KEY=✅
+```
+
+---
+
+## 💾 Base de Datos (PostgreSQL)
+
+| Modelo        | Uso              |
+| ------------- | ---------------- |
+| User          | Usuarios         |
+| Conversation  | Chats            |
+| Message       | Mensajes         |
+| Project       | Agency Mode      |
+| Snippet       | La Bóveda        |
+| KnowledgeBase | Contexto         |
+| Workflow      | ComfyUI JSON     |
+| ApiKey        | Chrome extension |
+| **Trend**     | 🆕 Trend Radar   |
 
 ---
 
 ## 📋 Próximos Pasos
 
-1. Testing de persistencia
-2. Branches de conversación
-3. Docker deployment
+1. [ ] Weekly Digest automático con Claude
+2. [ ] Alertas en tiempo real
+3. [ ] Dashboard de progreso academia
+4. [ ] Export La Bóveda

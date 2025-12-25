@@ -169,3 +169,33 @@ model ApiKey {
   @@index([userId])
   @@index([key])
 }
+
+// =============================================================================
+// TREND RADAR - Monitoring & Intelligence
+// =============================================================================
+
+model Trend {
+  id          String        @id @default(uuid())
+  title       String
+  description String        @db.Text
+  url         String?
+  source      String        // reddit, twitter, civitai, huggingface, news
+  category    TrendCategory
+  heatScore   Int           @default(0) // 0-100 trending score
+  keywords    String[]
+  publishedAt DateTime?
+  fetchedAt   DateTime      @default(now())
+  
+  @@index([category])
+  @@index([heatScore])
+  @@index([fetchedAt])
+}
+
+enum TrendCategory {
+  FLUX_TECHNIQUES
+  LORA_MODELS
+  MONETIZATION
+  ANTI_DETECTION
+  TOOLS
+  NEWS
+}
