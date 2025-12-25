@@ -94,20 +94,29 @@ function needsResearch(message: string): { required: boolean; topics: string[] }
     { pattern: /qué funciona|funciona (hoy|ahora|actualmente)/i, topic: "estrategias efectivas actuales" },
     { pattern: /casos? de (éxito|estudio)|ejemplo real/i, topic: "casos de éxito reales" },
     
-    // AI Models / Influencers
+    // AI Models / Influencers - AMPLIADO
     { pattern: /model(o|a) (con |de )?(ia|ai|inteligencia artificial)/i, topic: "AI models e influencers virtuales" },
-    { pattern: /influencer virtual|avatar ia/i, topic: "creación de influencers IA" },
-    { pattern: /onlyfans|fansly|contenido adult/i, topic: "plataformas de contenido premium" },
+    { pattern: /influencer virtual|avatar ia|personaje ia/i, topic: "creación de influencers IA" },
+    { pattern: /onlyfans|fansly|patreon|contenido adult/i, topic: "plataformas de contenido premium" },
+    { pattern: /nsfw|sfw|contenido exclusivo/i, topic: "estrategias de contenido premium" },
     
-    // Calidad de imagen / Anti-detección IA
-    { pattern: /realista|hiperrealista|foto real/i, topic: "generación de imágenes hiperrealistas" },
-    { pattern: /sin defectos|sin artefactos|natural/i, topic: "eliminación de artefactos IA" },
-    { pattern: /no (parecer|parezca) (ia|artificial)/i, topic: "anti-detección de IA" },
-    { pattern: /flux|midjourney|stable diffusion/i, topic: "modelos de generación de imágenes" },
+    // Generación de imágenes - AMPLIADO
+    { pattern: /realista|hiperrealista|foto real|photorealistic/i, topic: "generación de imágenes hiperrealistas" },
+    { pattern: /sin defectos|sin artefactos|natural|consistencia/i, topic: "eliminación de artefactos IA" },
+    { pattern: /no (parecer|parezca) (ia|artificial)|indetectable/i, topic: "anti-detección de IA" },
+    { pattern: /flux|midjourney|stable diffusion|sdxl|comfyui|runcomfy/i, topic: "modelos de generación de imágenes" },
+    { pattern: /lora|embedding|checkpoint|modelo entrenado/i, topic: "modelos y fine-tuning" },
+    { pattern: /workflow|nodo|node|flujo/i, topic: "workflows de ComfyUI" },
+    
+    // Aprendizaje y cursos - NUEVO
+    { pattern: /aprender|enseñ|curso|tutorial|lección|módulo/i, topic: "recursos de aprendizaje actuales" },
+    { pattern: /paso a paso|guía|cómo (empezar|comenzar)/i, topic: "guías prácticas actuales" },
+    { pattern: /principiante|desde cero|básico/i, topic: "recursos para principiantes" },
     
     // Marketing y ventas
     { pattern: /marketing|promocion|captacion|cliente/i, topic: "marketing digital" },
-    { pattern: /redes sociales|instagram|twitter|tiktok/i, topic: "estrategias en redes sociales" },
+    { pattern: /redes sociales|instagram|twitter|tiktok|reddit/i, topic: "estrategias en redes sociales" },
+    { pattern: /precio|tarifa|cobrar|cuánto vale/i, topic: "precios y tarifas del mercado" },
   ];
 
   for (const { pattern, topic } of researchPatterns) {
@@ -120,38 +129,57 @@ function needsResearch(message: string): { required: boolean; topics: string[] }
 }
 
 // =============================================================================
-// SYSTEM PROMPT - MODO EXPERTO EN AI MODELS & BUSINESS
+// SYSTEM PROMPT - MENTOR AI MODELS → 5000€/MES
 // =============================================================================
-const BASE_SYSTEM_PROMPT = `Mentor experto en AI Models, Flux/SDXL, monetización digital.
+const BASE_SYSTEM_PROMPT = `Eres mi mentor personal para convertirme en experto creador de modelos AI realistas.
+FECHA: ${new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" })}
 
-REGLA ÚNICA: Respuestas ULTRA-CORTAS. Máximo 150 palabras por mensaje.
+🎯 MI OBJETIVO:
+- Crear UNA modelo AI hiperrealista con identidad consistente
+- Generar contenido profesional indistinguible de fotos reales
+- Monetizar en OnlyFans/Fansly llegando a 5.000€/mes
 
-FORMATO:
-[Concepto en 1-2 oraciones]
+⚡ REGLAS CRÍTICAS:
+1. SIEMPRE busca info actual (web_search) sobre precios, estrategias, herramientas 2025
+2. Enfoca TODO hacia el objetivo de 5K/mes - cada lección debe acercarme a eso
+3. Prioriza técnicas probadas que generan ingresos reales
 
-**Acción:** [Qué hacer ahora - 1 línea]
+📚 MODO APRENDIZAJE:
+- Lecciones de 100 palabras máximo
+- 1 concepto = 1 mensaje
+- Termina con acción práctica o "¿Siguiente paso?"
+- Si hay práctica → dime qué capturar para verificar
 
-¿Continúo? / ¿Más detalle? / ¿Ejemplo?
+🔥 ESTRUCTURA DEL CAMINO (guíame paso a paso):
+1. FUNDAMENTOS: Flux/SDXL, ComfyUI, calidad fotorrealista
+2. PERSONAJE: LoRA training, consistencia facial, identidad única
+3. CONTENIDO: Poses, escenarios, variedad, calendario de publicación
+4. PLATAFORMA: Setup OnlyFans/Fansly, precios, tiers
+5. MARKETING: Reddit, Twitter, captación de suscriptores
+6. ESCALA: Automatización, 5K/mes y más allá
 
----
+💡 Cuando pregunte algo:
+- Si es sobre técnica → busca métodos actuales que funcionan
+- Si es sobre dinero → busca casos reales con números
+- Si es sobre herramientas → recomienda solo las mejores 2025
 
-Si piden curso/aprender: Lista de 3-5 pasos. Una lección = un paso. Espera "ok" antes de seguir.
-
-Si piden código: Solo el bloque esencial, sin explicaciones largas.
-
-Si busco en web: 3 bullets máximo con lo relevante.
-
-Español. Sin rodeos. Acción > teoría.`;
+Español. Sin rodeos. Cada mensaje me acerca a los 5K/mes.`;
 
 export async function POST(req: Request) {
   const { messages, knowledgeContext, projectId, userId } = await req.json();
   const currentUserId = userId || "default-user";
 
-  // Process snippets
+  // Process snippets - handle both simple string content and content with parts
+  interface ContentPart {
+    type: "text" | "image";
+    text?: string;
+    image?: string;
+  }
+
   interface IncomingMessage {
     role: "user" | "assistant";
-    content: string;
-    images?: string[];
+    content: string | ContentPart[];
+    experimental_attachments?: Array<{ url: string; contentType: string; name: string }>;
   }
 
   let expandedMessages = [...(messages as IncomingMessage[])];
@@ -159,26 +187,39 @@ export async function POST(req: Request) {
 
   if (expandedMessages.length > 0) {
     const lastMessage = expandedMessages[expandedMessages.length - 1];
-    if (lastMessage.role === "user" && typeof lastMessage.content === "string") {
+    // Get text content for snippet expansion
+    const textContent = typeof lastMessage.content === "string" 
+      ? lastMessage.content 
+      : (lastMessage.content as ContentPart[]).find(p => p.type === "text")?.text || "";
+    
+    if (lastMessage.role === "user" && textContent) {
       const { expandedContent, usedSnippets } = await expandSnippets(
-        lastMessage.content,
+        textContent,
         currentUserId
       );
       
       if (usedSnippets.length > 0) {
         console.log(`[ComfyClaude] Expanded snippets: ${usedSnippets.join(", ")}`);
         usedSnippetsList.push(...usedSnippets);
-        expandedMessages = [
-          ...expandedMessages.slice(0, -1),
-          { ...lastMessage, content: expandedContent },
-        ];
+        // Update content with expanded text
+        if (typeof lastMessage.content === "string") {
+          expandedMessages = [
+            ...expandedMessages.slice(0, -1),
+            { ...lastMessage, content: expandedContent },
+          ];
+        }
       }
     }
   }
 
   // Detect if research is needed
-  const lastUserMessage = expandedMessages.find((m) => m.role === "user")?.content || "";
-  const { required: researchRequired, topics } = needsResearch(lastUserMessage);
+  const lastUserMessage = expandedMessages.find((m) => m.role === "user");
+  const lastUserText = lastUserMessage 
+    ? (typeof lastUserMessage.content === "string" 
+        ? lastUserMessage.content 
+        : (lastUserMessage.content as ContentPart[]).find(p => p.type === "text")?.text || "")
+    : "";
+  const { required: researchRequired, topics } = needsResearch(lastUserText);
 
   // Load project context
   const projectContext = await getProjectContext(projectId);
@@ -235,22 +276,82 @@ NO respondas solo con tu conocimiento base. BUSCA PRIMERO.`,
     });
   }
 
-  // Process messages with vision support
-  const processedMessages = expandedMessages.map((msg) => {
-    if (msg.role === "user" && msg.images && msg.images.length > 0) {
+  // Helper: Extract text from image using Vision OCR
+  async function extractTextFromImage(imageUrl: string): Promise<string> {
+    try {
+      const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, "");
+      
+      // Check if Vision API is configured
+      if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        console.log("[ComfyClaude] No Vision credentials - skipping OCR");
+        return "[Imagen adjunta - OCR no disponible]";
+      }
+
+      const { ImageAnnotatorClient } = await import("@google-cloud/vision");
+      const client = new ImageAnnotatorClient();
+      
+      const [result] = await client.documentTextDetection({
+        image: { content: base64Data },
+      });
+
+      const text = result.fullTextAnnotation?.text || "";
+      console.log(`[ComfyClaude OCR] Extracted ${text.length} characters from image`);
+      
+      if (text.trim()) {
+        return `[CAPTURA DE PANTALLA - Texto detectado:]
+${text.slice(0, 2000)}${text.length > 2000 ? "... (truncado)" : ""}`;
+      }
+      
+      return "[Imagen sin texto detectable]";
+    } catch (error) {
+      console.error("[ComfyClaude OCR] Error:", error);
+      return "[Error procesando imagen]";
+    }
+  }
+
+  // Process messages - convert images to OCR text (saves Claude tokens!)
+  const processedMessages = await Promise.all(expandedMessages.map(async (msg) => {
+    // Check for experimental_attachments (from Vercel AI SDK)
+    if (msg.role === "user" && msg.experimental_attachments && msg.experimental_attachments.length > 0) {
+      const textContent = typeof msg.content === "string" 
+        ? msg.content 
+        : (msg.content as ContentPart[]).find(p => p.type === "text")?.text || "";
+      
+      console.log(`[ComfyClaude] Processing ${msg.experimental_attachments.length} image(s) with OCR...`);
+      
+      // Extract text from each image using OCR
+      const ocrTexts = await Promise.all(
+        msg.experimental_attachments.map(attachment => extractTextFromImage(attachment.url))
+      );
+      
+      // Combine user message with OCR results
+      const combinedContent = [
+        textContent,
+        ...ocrTexts
+      ].filter(Boolean).join("\n\n");
+      
       return {
         role: "user" as const,
-        content: [
-          { type: "text" as const, text: msg.content },
-          ...msg.images.map((imageUrl: string) => ({
-            type: "image" as const,
-            image: imageUrl,
-          })),
-        ],
+        content: combinedContent,
       };
     }
-    return { role: msg.role as "user" | "assistant", content: msg.content };
-  });
+    
+    // Handle already-formatted content (with parts)
+    if (Array.isArray(msg.content)) {
+      // Convert any image parts to text
+      const parts = await Promise.all((msg.content as ContentPart[]).map(async (part) => {
+        if (part.type === "image" && part.image) {
+          const ocrText = await extractTextFromImage(part.image);
+          return ocrText;
+        }
+        return part.text || "";
+      }));
+      return { role: msg.role as "user" | "assistant", content: parts.join("\n") };
+    }
+    
+    // Simple text content
+    return { role: msg.role as "user" | "assistant", content: msg.content as string };
+  }));
 
   const result = await streamText({
     model: anthropic("claude-opus-4-5-20251101"),
