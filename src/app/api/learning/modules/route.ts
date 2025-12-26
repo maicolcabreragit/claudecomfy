@@ -96,7 +96,9 @@ export async function POST(req: NextRequest) {
       data: {
         title: moduleTitle,
         topic,
+        description: body.description || null,
         conversationId,
+        isManual: body.isManual || false,
       },
     });
 

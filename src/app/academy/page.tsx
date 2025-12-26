@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   GraduationCap,
@@ -13,15 +13,17 @@ import {
   Zap,
   Target,
   Star,
-  ChevronRight,
   Loader2,
   BookOpen,
   Sparkles,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { ModuleList } from "./components/ModuleList";
+import { CreateModuleModal } from "./components/CreateModuleModal";
 
 // ============================================================================
 // Types
@@ -33,13 +35,25 @@ interface Stats {
   trends: number;
 }
 
-interface Course {
+interface LearningUnit {
   id: string;
   title: string;
-  description: string;
+  completed: boolean;
+  order: number;
+}
+
+interface LearningModule {
+  id: string;
+  title: string;
+  topic: string;
+  description: string | null;
+  status: "ACTIVE" | "COMPLETED" | "PAUSED";
   progress: number;
-  totalLessons: number;
-  completedLessons: number;
+  conversationId: string | null;
+  isManual: boolean;
+  units: LearningUnit[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Achievement {
@@ -52,37 +66,10 @@ interface Achievement {
 }
 
 // ============================================================================
-// Mock Data (TODO: Replace with real API calls)
+// Static Data (Achievements - will be dynamic later)
 // ============================================================================
 
-const MOCK_COURSES: Course[] = [
-  {
-    id: "1",
-    title: "Fundamentos de Flux.1",
-    description: "Domina los conceptos básicos de generación fotorrealista",
-    progress: 75,
-    totalLessons: 12,
-    completedLessons: 9,
-  },
-  {
-    id: "2", 
-    title: "Monetización con AI Art",
-    description: "Estrategias para convertir tu arte en ingresos",
-    progress: 30,
-    totalLessons: 8,
-    completedLessons: 2,
-  },
-  {
-    id: "3",
-    title: "Anti-Detección Avanzada",
-    description: "Técnicas para eliminar el 'AI look' de tus imágenes",
-    progress: 0,
-    totalLessons: 6,
-    completedLessons: 0,
-  },
-];
-
-const MOCK_ACHIEVEMENTS: Achievement[] = [
+const ACHIEVEMENTS: Achievement[] = [
   {
     id: "first-chat",
     title: "Primera Conversación",
@@ -135,16 +122,42 @@ const MOCK_ACHIEVEMENTS: Achievement[] = [
 
 export default function AcademyPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState<Stats>({ conversations: 0, snippets: 0, trends: 0 });
   
-  // Mock data (TODO: fetch from APIs when available)
-  const [streak] = useState(3); // TODO: Calculate from conversation dates
-  const [todayMinutes] = useState(47); // TODO: Track session time
-  const courses = MOCK_COURSES;
-  const achievements = MOCK_ACHIEVEMENTS;
+  // Loading states
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [isLoadingModules, setIsLoadingModules] = useState(true);
+  
+  // Data states
+  const [stats, setStats] = useState<Stats>({ conversations: 0, snippets: 0, trends: 0 });
+  const [modules, setModules] = useState<LearningModule[]>([]);
+  
+  // UI states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  // Computed stats
+  const activeModules = modules.filter((m) => m.status === "ACTIVE").length;
+  const completedModules = modules.filter((m) => m.status === "COMPLETED").length;
+  const streak = 3; // TODO: Calculate from module activity dates
+  const todayMinutes = 47; // TODO: Track session time
+  const achievements = ACHIEVEMENTS;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
 
-  // Fetch real stats
+  // Fetch modules
+  const fetchModules = useCallback(async () => {
+    try {
+      const res = await fetch("/api/learning/modules");
+      const data = await res.json();
+      if (data.modules) {
+        setModules(data.modules);
+      }
+    } catch (err) {
+      console.error("Failed to fetch modules:", err);
+    } finally {
+      setIsLoadingModules(false);
+    }
+  }, []);
+
+  // Fetch stats
   useEffect(() => {
     async function fetchStats() {
       try {
@@ -168,14 +181,18 @@ export default function AcademyPage() {
       } catch (err) {
         console.error("Failed to fetch stats:", err);
       } finally {
-        setIsLoading(false);
+        setIsLoadingStats(false);
       }
     }
 
     fetchStats();
-  }, []);
+    fetchModules();
+  }, [fetchModules]);
 
-  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  // Handle module deletion (optimistic update)
+  function handleDeleteModule(id: string) {
+    setModules((prev) => prev.filter((m) => m.id !== id));
+  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -236,37 +253,39 @@ export default function AcademyPage() {
             </CardContent>
           </Card>
 
-          {/* Conversations */}
+          {/* Active Modules */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <MessageSquare className="h-5 w-5 text-purple-400" />
+                  <BookOpen className="h-5 w-5 text-purple-400" />
                 </div>
                 <div>
-                  {isLoading ? (
+                  {isLoadingModules ? (
                     <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
                   ) : (
-                    <p className="text-2xl font-bold">{stats.conversations}</p>
+                    <p className="text-2xl font-bold">{activeModules}</p>
                   )}
-                  <p className="text-xs text-zinc-500">Conversaciones</p>
+                  <p className="text-xs text-zinc-500">Cursos activos</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Achievements */}
+          {/* Completed Modules */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                  <Trophy className="h-5 w-5 text-yellow-400" />
+                <div className="p-2 bg-green-500/20 rounded-lg">
+                  <Trophy className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {unlockedCount}/{achievements.length}
-                  </p>
-                  <p className="text-xs text-zinc-500">Logros</p>
+                  {isLoadingModules ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
+                  ) : (
+                    <p className="text-2xl font-bold">{completedModules}</p>
+                  )}
+                  <p className="text-xs text-zinc-500">Completados</p>
                 </div>
               </div>
             </CardContent>
@@ -275,6 +294,13 @@ export default function AcademyPage() {
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-3">
+          <Button
+            variant="primary"
+            leftIcon={Plus}
+            onClick={() => setShowCreateModal(true)}
+          >
+            Nuevo Curso
+          </Button>
           <Button
             variant="default"
             leftIcon={MessageSquare}
@@ -303,49 +329,19 @@ export default function AcademyPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-purple-400" />
-              Cursos Activos
+              Mis Cursos
             </h2>
             <span className="text-xs text-zinc-500">
-              {courses.filter((c) => c.progress > 0).length} en progreso
+              {activeModules} activos · {completedModules} completados
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {courses.map((course) => (
-              <Card key={course.id} interactive>
-                <CardContent className="p-4">
-                  <h3 className="font-medium mb-1">{course.title}</h3>
-                  <p className="text-xs text-zinc-500 mb-3 line-clamp-2">
-                    {course.description}
-                  </p>
-
-                  {/* Progress bar */}
-                  <div className="mb-2">
-                    <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full transition-all",
-                          course.progress === 100
-                            ? "bg-semantic-success"
-                            : "bg-gradient-to-r from-purple-500 to-pink-500"
-                        )}
-                        style={{ width: `${course.progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500">
-                      {course.completedLessons}/{course.totalLessons} lecciones
-                    </span>
-                    <Button variant="ghost" size="sm" rightIcon={ChevronRight}>
-                      Continuar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ModuleList
+            modules={modules}
+            isLoading={isLoadingModules}
+            onModuleUpdate={fetchModules}
+            onDelete={handleDeleteModule}
+          />
         </div>
 
         {/* Achievements Section */}
@@ -446,9 +442,16 @@ export default function AcademyPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-zinc-600">
-          💡 Tip: Mantén tu racha activa para desbloquear logros especiales
+          💡 Tip: Pregunta &quot;cómo hacer...&quot; en el chat para crear cursos automáticamente
         </p>
       </div>
+
+      {/* Create Module Modal */}
+      <CreateModuleModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={fetchModules}
+      />
     </div>
   );
 }

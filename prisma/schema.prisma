@@ -274,6 +274,7 @@ model LearningModule {
   status         LearningStatus @default(ACTIVE)
   progress       Int            @default(0) // 0-100
   conversationId String?
+  isManual       Boolean        @default(false) // true = manually created in Academy
   units          LearningUnit[]
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
