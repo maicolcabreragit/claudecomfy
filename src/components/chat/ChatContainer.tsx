@@ -7,6 +7,24 @@ import { ProgressBar, Phase } from "./ProgressBar";
 import { Task } from "./TaskCard";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
+import { LearningIndicator } from "./LearningIndicator";
+import { detectLearningIntent } from "@/lib/detect-learning";
+import { parseTasksFromContent } from "@/lib/parse-tasks";
+
+// Types for Learning Module
+interface LearningUnit {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+interface ActiveModule {
+  id: string;
+  title: string;
+  topic: string;
+  progress: number;
+  units: LearningUnit[];
+}
 
 interface ChatContainerProps {
   knowledgeContext: string;
@@ -51,6 +69,9 @@ export function ChatContainer({
   
   // Conversation tracking
   const [pendingConversationId, setPendingConversationId] = useState<string | null>(null);
+  
+  // Learning module tracking
+  const [activeModule, setActiveModule] = useState<ActiveModule | null>(null);
 
   // ================================================================
   // useChat hook with knowledgeContext + projectId
@@ -74,6 +95,28 @@ export function ChatContainer({
       const convId = conversationId || pendingConversationId;
       if (convId) {
         await saveMessage(convId, message.role, message.content);
+      }
+      
+      // Extract learning units from assistant response if module is active
+      if (activeModule && message.role === "assistant") {
+        const { tasks } = parseTasksFromContent(message.content);
+        if (tasks.length >= 2) {
+          try {
+            const res = await fetch(`/api/learning/modules/${activeModule.id}/units`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                units: tasks.map(t => ({ title: t.title }))
+              }),
+            });
+            const data = await res.json();
+            if (data.module) {
+              setActiveModule(data.module);
+            }
+          } catch (err) {
+            console.error("[Learning] Failed to save units:", err);
+          }
+        }
       }
     },
   });
@@ -285,6 +328,30 @@ export function ChatContainer({
 
       const currentInput = input;
 
+      // Detect learning intent BEFORE submission
+      if (!activeModule) {
+        const intent = detectLearningIntent(currentInput);
+        if (intent.isLearning && intent.confidence >= 0.7 && intent.topic) {
+          try {
+            const res = await fetch("/api/learning/modules", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                topic: intent.topic,
+                conversationId: conversationId || pendingConversationId,
+              }),
+            });
+            const data = await res.json();
+            if (data.module) {
+              setActiveModule(data.module);
+              console.log(`[Learning] ${data.isExisting ? "Activated" : "Created"} module: ${data.module.topic}`);
+            }
+          } catch (err) {
+            console.error("[Learning] Failed to create module:", err);
+          }
+        }
+      }
+
       // Convert files to base64
       const imagePromises = attachments.map((file) =>
         new Promise<string>((resolve) => {
@@ -320,7 +387,7 @@ export function ChatContainer({
         console.error("Failed to persist message (non-critical):", err);
       }
     },
-    [input, attachments, isLoading, originalHandleSubmit, previewUrls]
+    [input, attachments, isLoading, originalHandleSubmit, previewUrls, activeModule, conversationId, pendingConversationId]
   );
 
   // Task handlers
@@ -356,6 +423,29 @@ Por favor, ejecuta cada tarea paso a paso. Después de completar cada una, esper
       }, 100);
     }
   }, [sessionTasks, handleInputChange]);
+
+  // Learning module handlers
+  const handleCloseLearningModule = useCallback(() => {
+    setActiveModule(null);
+  }, []);
+
+  const handleToggleLearningUnit = useCallback(async (unitId: string, completed: boolean) => {
+    if (!activeModule) return;
+    
+    try {
+      const res = await fetch(`/api/learning/modules/${activeModule.id}/units`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unitId, completed }),
+      });
+      const data = await res.json();
+      if (data.module) {
+        setActiveModule(data.module);
+      }
+    } catch (err) {
+      console.error("[Learning] Failed to toggle unit:", err);
+    }
+  }, [activeModule]);
 
   // ================================================================
   // Render
@@ -398,6 +488,15 @@ Por favor, ejecuta cada tarea paso a paso. Después de completar cada una, esper
           onStartDevelopment={handleStartDevelopment}
           onReload={reload}
           messagesEndRef={messagesEndRef}
+        />
+      </div>
+
+      {/* Learning Indicator */}
+      <div className="px-4">
+        <LearningIndicator
+          module={activeModule}
+          onClose={handleCloseLearningModule}
+          onToggleUnit={handleToggleLearningUnit}
         />
       </div>
 

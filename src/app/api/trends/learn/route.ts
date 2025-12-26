@@ -1,7 +1,7 @@
 /**
  * Deep Learning API - Analiza tendencias en detalle para aprendizaje
  * POST /api/trends/learn - Genera contenido de aprendizaje profundo
- * GET /api/trends/learn - Obtiene el último análisis generado
+ * GET /api/trends/learn - Lista análisis anteriores (digests)
  */
 
 import { NextResponse } from "next/server";
@@ -35,6 +35,33 @@ interface LearningContent {
   }>;
 }
 
+// GET - List previous digests
+export async function GET() {
+  try {
+    const prisma = getPrisma();
+    
+    const digests = await prisma.trendDigest.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        createdAt: true,
+        audioUrl: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      digests,
+    });
+  } catch (error) {
+    console.error("[Learn] GET Error:", error);
+    return NextResponse.json({ error: "Failed to fetch digests" }, { status: 500 });
+  }
+}
+
 // POST - Generate deep learning content from trends
 export async function POST() {
   try {
@@ -65,7 +92,7 @@ export async function POST() {
       });
     }
 
-    const model = gemini.getGenerativeModel({ model: "gemini-2.0-flash-001" }); // Stable flash model
+    const model = gemini.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
     // Group trends by category
     const grouped: Record<string, typeof trends> = {};
@@ -133,10 +160,8 @@ IMPORTANTE:
       }
     }
 
-    // Save to database as knowledge base entry
+    // Generate summary
     const fullContent = JSON.stringify(learningContent, null, 2);
-    
-    // Create summary for storage
     const summaryPrompt = `Resume en 5 bullets el contenido más importante para alguien que quiere ganar 5000€/mes con AI Models:
 ${fullContent.slice(0, 3000)}`;
     
@@ -148,10 +173,27 @@ ${fullContent.slice(0, 3000)}`;
       summary = `Análisis de ${trends.length} tendencias en ${Object.keys(grouped).length} categorías`;
     }
 
-    console.log(`[Learn] Generated deep analysis for ${trends.length} trends`);
+    // Save to database as TrendDigest
+    const today = new Date().toLocaleDateString("es-ES", { 
+      day: "numeric", 
+      month: "short", 
+      year: "numeric" 
+    });
+    
+    const digest = await prisma.trendDigest.create({
+      data: {
+        title: `Análisis del ${today}`,
+        summary,
+        content: learningContent,
+        trendIds: trends.map(t => t.id),
+      },
+    });
+
+    console.log(`[Learn] Saved digest ${digest.id} with ${trends.length} trends`);
 
     return NextResponse.json({
       success: true,
+      digestId: digest.id,
       generatedAt: new Date().toISOString(),
       trendsAnalyzed: trends.length,
       categories: Object.keys(grouped).length,
@@ -163,12 +205,4 @@ ${fullContent.slice(0, 3000)}`;
     console.error("[Learn] Error:", error);
     return NextResponse.json({ error: "Failed to generate learning content" }, { status: 500 });
   }
-}
-
-// GET - Return static learning tips while content generates
-export async function GET() {
-  return NextResponse.json({
-    message: "Usa POST para generar contenido de aprendizaje profundo",
-    tip: "El análisis profundo toma ~30 segundos pero vale la pena",
-  });
 }

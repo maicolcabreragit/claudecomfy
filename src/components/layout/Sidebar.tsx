@@ -6,12 +6,14 @@ import {
   TrendingUp, 
   Archive, 
   GraduationCap,
+  Settings,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavItem } from "./NavItem";
 import { useAppStore, useSidebarCollapsed } from "@/store";
+import { useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/", icon: MessageSquare, label: "Chat" },
@@ -19,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/vault", icon: Archive, label: "La Bóveda" },
   { href: "/academy", icon: GraduationCap, label: "Academia" },
 ];
+
 
 /**
  * Sidebar - Navegación principal colapsable
@@ -30,18 +33,23 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const collapsed = useSidebarCollapsed();
   const toggleSidebar = useAppStore((state) => state.toggleSidebar);
+  const router = useRouter();
 
-  // Keyboard shortcut: Cmd/Ctrl+B
+  // Keyboard shortcuts: Cmd/Ctrl+B (sidebar), Cmd/Ctrl+, (settings)
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "b") {
         e.preventDefault();
         toggleSidebar();
       }
+      if ((e.metaKey || e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        router.push("/settings");
+      }
     };
     window.addEventListener("keydown", handleKeydown);
     return () => window.removeEventListener("keydown", handleKeydown);
-  }, [toggleSidebar]);
+  }, [toggleSidebar, router]);
 
   return (
     <aside
@@ -74,6 +82,16 @@ export function Sidebar() {
           />
         ))}
       </nav>
+
+      {/* Settings - Separated */}
+      <div className="p-2 border-t border-surface-border">
+        <NavItem
+          href="/settings"
+          icon={Settings}
+          label="Ajustes"
+          collapsed={collapsed}
+        />
+      </div>
 
       {/* Collapse toggle */}
       <div className="p-2 border-t border-surface-border">

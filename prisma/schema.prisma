@@ -24,8 +24,54 @@ model User {
   snippets       Snippet[]
   workflows      Workflow[]
   apiKeys        ApiKey[]
+  settings       UserSettings?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+}
+
+// =============================================================================
+// USER SETTINGS - AI Provider & Preferences
+// =============================================================================
+
+model UserSettings {
+  id               String     @id @default(uuid())
+  userId           String     @unique
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // AI Provider Config
+  aiProvider       AIProvider @default(ANTHROPIC)
+  preferredModel   String     @default("claude-opus-4-5-20251101")
+  openrouterApiKey String?    // Encrypted with AES-256-GCM
+  openrouterKeyIv  String?    // IV for decryption
+  anthropicApiKey  String?    // Optional override (encrypted)
+  anthropicKeyIv   String?    // IV for decryption
+  
+  // Generation Parameters
+  temperature      Float      @default(0.7)
+  maxTokens        Int        @default(4096)
+  
+  // UI Preferences
+  theme            Theme      @default(DARK)
+  language         Language   @default(ES)
+  
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+enum AIProvider {
+  ANTHROPIC
+  OPENROUTER
+}
+
+enum Theme {
+  DARK
+  LIGHT
+  SYSTEM
+}
+
+enum Language {
+  ES
+  EN
 }
 
 // =============================================================================
@@ -191,6 +237,22 @@ model Trend {
   @@index([fetchedAt])
 }
 
+// =============================================================================
+// TREND DIGEST - Saved Analysis/Summaries
+// =============================================================================
+
+model TrendDigest {
+  id        String   @id @default(uuid())
+  title     String   // "Análisis del 26 Dic 2024"
+  summary   String   @db.Text
+  content   Json     // LearningContent[] estructurado
+  trendIds  String[] // IDs de trends analizados
+  audioUrl  String?  // Audio generado (opcional)
+  createdAt DateTime @default(now())
+  
+  @@index([createdAt])
+}
+
 enum TrendCategory {
   FLUX_TECHNIQUES
   LORA_MODELS
@@ -199,3 +261,43 @@ enum TrendCategory {
   TOOLS
   NEWS
 }
+
+// =============================================================================
+// LEARNING MODULES - Auto-detected Courses
+// =============================================================================
+
+model LearningModule {
+  id             String         @id @default(uuid())
+  title          String
+  topic          String         // Normalized topic for matching
+  description    String?        @db.Text
+  status         LearningStatus @default(ACTIVE)
+  progress       Int            @default(0) // 0-100
+  conversationId String?
+  units          LearningUnit[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  @@index([topic])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model LearningUnit {
+  id        String         @id @default(uuid())
+  moduleId  String
+  module    LearningModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title     String
+  completed Boolean        @default(false)
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+  
+  @@index([moduleId])
+}
+
+enum LearningStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+}
+

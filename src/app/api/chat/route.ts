@@ -1,8 +1,10 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { streamText, tool } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { streamText, tool, LanguageModelV1 } from "ai";
 import { z } from "zod";
 import { tavily, TavilyClient } from "@tavily/core";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, AIProvider } from "@prisma/client";
+import { decryptApiKey } from "@/lib/encryption";
 
 // Lazy initialization of Prisma to avoid connection issues
 let _prisma: PrismaClient | null = null;
@@ -22,6 +24,75 @@ function getTavilyClient(): TavilyClient {
     });
   }
   return _tavilyClient;
+}
+
+// Default user ID
+const DEFAULT_USER_ID = "default-user";
+
+// =============================================================================
+// DYNAMIC AI MODEL LOADER (based on user settings)
+// =============================================================================
+interface UserModelConfig {
+  model: LanguageModelV1;
+  provider: AIProvider;
+  temperature: number;
+  maxTokens: number;
+}
+
+async function getAIModelFromSettings(): Promise<UserModelConfig> {
+  const prisma = getPrisma();
+  
+  // Load user settings
+  const settings = await prisma.userSettings.findUnique({
+    where: { userId: DEFAULT_USER_ID },
+  });
+
+  // Default config
+  const defaultConfig: UserModelConfig = {
+    model: anthropic("claude-opus-4-5-20251101"),
+    provider: "ANTHROPIC",
+    temperature: 0.7,
+    maxTokens: 4096,
+  };
+
+  if (!settings) {
+    console.log("[ComfyClaude] Using default Anthropic config (no settings)");
+    return defaultConfig;
+  }
+
+  // Use OpenRouter if configured
+  if (settings.aiProvider === "OPENROUTER" && settings.openrouterApiKey && settings.openrouterKeyIv) {
+    try {
+      const apiKey = decryptApiKey(settings.openrouterApiKey, settings.openrouterKeyIv);
+      const openrouter = createOpenRouter({ apiKey });
+      
+      console.log(`[ComfyClaude] Using OpenRouter with model: ${settings.preferredModel}`);
+      return {
+        model: openrouter(settings.preferredModel),
+        provider: "OPENROUTER",
+        temperature: settings.temperature,
+        maxTokens: settings.maxTokens,
+      };
+    } catch (error) {
+      console.error("[ComfyClaude] OpenRouter key decryption failed:", error);
+      return defaultConfig;
+    }
+  }
+
+  // Use Anthropic with custom key if provided
+  if (settings.aiProvider === "ANTHROPIC") {
+    console.log(`[ComfyClaude] Using Anthropic with model: ${settings.preferredModel}`);
+    // Note: Custom Anthropic key would need SDK configuration changes
+    // For now, uses the env-based key with user's model preference
+    return {
+      model: anthropic(settings.preferredModel),
+      provider: "ANTHROPIC",
+      temperature: settings.temperature,
+      maxTokens: settings.maxTokens,
+    };
+  }
+
+  return defaultConfig;
 }
 
 // =============================================================================
@@ -353,14 +424,20 @@ ${text.slice(0, 2000)}${text.length > 2000 ? "... (truncado)" : ""}`;
     return { role: msg.role as "user" | "assistant", content: msg.content as string };
   }));
 
+  // Get AI model based on user settings
+  const modelConfig = await getAIModelFromSettings();
+  const isAnthropic = modelConfig.provider === "ANTHROPIC";
+
   const result = await streamText({
-    model: anthropic("claude-opus-4-5-20251101"),
+    model: modelConfig.model,
     messages: [...systemMessages, ...processedMessages],
-    experimental_providerMetadata: {
-      anthropic: {
-        thinking: { type: "enabled", budgetTokens: 4096 }, // Token-efficient thinking
+    ...(isAnthropic && {
+      experimental_providerMetadata: {
+        anthropic: {
+          thinking: { type: "enabled", budgetTokens: modelConfig.maxTokens },
+        },
       },
-    },
+    }),
     tools: {
       // Enhanced Web Search Tool
       web_search: tool({

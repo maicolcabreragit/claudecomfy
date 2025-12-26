@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Loader2, Radio, RefreshCw, GraduationCap, MessageSquare } from "lucide-react";
+import { Loader2, Radio, RefreshCw, GraduationCap, MessageSquare, BookOpen, Compass } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -12,18 +12,22 @@ import {
   type Trend,
   type LearningData,
 } from "./components";
+import { DigestList } from "./components/DigestList";
+
+type TabView = "explore" | "digests";
 
 /**
  * TrendsPage - Trend Radar dashboard
  * 
- * Refactored from 429 lines to ~140 lines by extracting:
- * - TrendFilters (sidebar)
- * - TrendCard (individual item) 
- * - TrendList (list with states)
- * - AudioPlayer (sticky player)
- * - LearningView (analyzed content)
+ * Features:
+ * - Explore Trends (list view)
+ * - My Analyses (saved digests)
+ * - Learning View (full analysis)
  */
 export default function TrendsPage() {
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabView>("explore");
+  
   // Data state
   const [trends, setTrends] = useState<Trend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,11 +38,12 @@ export default function TrendsPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   
   // View state
-  const [viewMode, setViewMode] = useState<"list" | "learn">("list");
+  const [showLearning, setShowLearning] = useState(false);
   const [expandedTrend, setExpandedTrend] = useState<string | null>(null);
   
   // Learning state
   const [learningContent, setLearningContent] = useState<LearningData | null>(null);
+  const [currentDigestId, setCurrentDigestId] = useState<string | null>(null);
   const [generatingLearning, setGeneratingLearning] = useState(false);
   
   // Audio state
@@ -109,13 +114,36 @@ export default function TrendsPage() {
 
   const generateLearning = async () => {
     setGeneratingLearning(true);
-    setViewMode("learn");
+    setShowLearning(true);
     try {
       const res = await fetch("/api/trends/learn", { method: "POST" });
       const data = await res.json();
-      if (data.content) setLearningContent(data);
+      if (data.content) {
+        setLearningContent(data);
+        setCurrentDigestId(data.digestId || null);
+      }
     } catch {
       alert("Error generando contenido");
+    } finally {
+      setGeneratingLearning(false);
+    }
+  };
+
+  const loadDigest = async (digestId: string) => {
+    setShowLearning(true);
+    setGeneratingLearning(true);
+    try {
+      const res = await fetch(`/api/trends/learn/${digestId}`);
+      const data = await res.json();
+      if (data.digest) {
+        setLearningContent({
+          summary: data.digest.summary,
+          content: data.digest.content,
+        });
+        setCurrentDigestId(digestId);
+      }
+    } catch {
+      alert("Error cargando análisis");
     } finally {
       setGeneratingLearning(false);
     }
@@ -158,6 +186,33 @@ export default function TrendsPage() {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold text-gradient">📡 Trend Radar</h1>
+            
+            {/* Tabs */}
+            <div className="flex bg-surface-elevated rounded-lg p-1">
+              <button
+                onClick={() => { setActiveTab("explore"); setShowLearning(false); }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                  activeTab === "explore" && !showLearning
+                    ? "bg-accent-purple text-white"
+                    : "text-zinc-400 hover:text-foreground"
+                }`}
+              >
+                <Compass className="h-4 w-4" />
+                Explorar
+              </button>
+              <button
+                onClick={() => { setActiveTab("digests"); setShowLearning(false); }}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                  activeTab === "digests" && !showLearning
+                    ? "bg-accent-purple text-white"
+                    : "text-zinc-400 hover:text-foreground"
+                }`}
+              >
+                <BookOpen className="h-4 w-4" />
+                Mis Análisis
+              </button>
+            </div>
+            
             <div className="flex gap-1">
               <Badge variant="default">{stats.total} trends</Badge>
               <Badge variant="default">{stats.dates} días</Badge>
@@ -165,47 +220,52 @@ export default function TrendsPage() {
           </div>
 
           <div className="flex gap-2">
-            {learningContent && (
+            {showLearning && (
               <>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setLearningContent(null); setViewMode("list"); }}
+                  onClick={() => setShowLearning(false)}
                 >
-                  📋 Lista
+                  ← Volver
                 </Button>
                 <Button variant="primary" size="sm" leftIcon={MessageSquare}>
                   Chat con Claude
                 </Button>
               </>
             )}
-            <Button
-              variant={viewMode === "learn" ? "primary" : "default"}
-              size="sm"
-              leftIcon={GraduationCap}
-              isLoading={generatingLearning}
-              onClick={learningContent ? () => setViewMode("learn") : generateLearning}
-            >
-              {generatingLearning ? "Analizando..." : viewMode === "learn" ? "✓ Analizado" : "Aprender"}
-            </Button>
-            <Button
-              variant="default"
-              size="sm"
-              leftIcon={Radio}
-              isLoading={generatingAudio}
-              onClick={generatePodcast}
-            >
-              {generatingAudio ? "Generando..." : "Podcast"}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={fetching ? Loader2 : RefreshCw}
-              isLoading={fetching}
-              onClick={fetchNewTrends}
-            >
-              Buscar
-            </Button>
+            
+            {activeTab === "explore" && !showLearning && (
+              <>
+                <Button
+                  variant="default"
+                  size="sm"
+                  leftIcon={GraduationCap}
+                  isLoading={generatingLearning}
+                  onClick={generateLearning}
+                >
+                  {generatingLearning ? "Analizando..." : "Analizar Todo"}
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  leftIcon={Radio}
+                  isLoading={generatingAudio}
+                  onClick={generatePodcast}
+                >
+                  {generatingAudio ? "Generando..." : "Podcast"}
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={fetching ? Loader2 : RefreshCw}
+                  isLoading={fetching}
+                  onClick={fetchNewTrends}
+                >
+                  Buscar
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -220,31 +280,46 @@ export default function TrendsPage() {
       )}
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-4 flex gap-4">
-        <TrendFilters
-          dates={dates}
-          trendsByDate={trendsByDate as Record<string, { length: number }[]>}
-          selectedDate={selectedDate}
-          selectedCategory={selectedCategory}
-          totalTrends={stats.total}
-          categoryStats={stats.byCategory}
-          onDateChange={setSelectedDate}
-          onCategoryChange={setSelectedCategory}
-        />
-
-        <div className="flex-1 min-w-0">
-          {viewMode === "learn" && learningContent ? (
-            <LearningView data={learningContent} />
-          ) : (
-            <TrendList
-              trends={filteredTrends}
-              loading={loading}
-              expandedId={expandedTrend}
-              onToggleExpand={setExpandedTrend}
-              onFetchNew={fetchNewTrends}
+      <div className="max-w-6xl mx-auto p-4">
+        {/* Learning View (Full Analysis) */}
+        {showLearning && learningContent ? (
+          <LearningView data={learningContent} digestId={currentDigestId || undefined} />
+        ) : activeTab === "explore" ? (
+          /* Explore Tab */
+          <div className="flex gap-4">
+            <TrendFilters
+              dates={dates}
+              trendsByDate={trendsByDate as Record<string, { length: number }[]>}
+              selectedDate={selectedDate}
+              selectedCategory={selectedCategory}
+              totalTrends={stats.total}
+              categoryStats={stats.byCategory}
+              onDateChange={setSelectedDate}
+              onCategoryChange={setSelectedCategory}
             />
-          )}
-        </div>
+
+            <div className="flex-1 min-w-0">
+              <TrendList
+                trends={filteredTrends}
+                loading={loading}
+                expandedId={expandedTrend}
+                onToggleExpand={setExpandedTrend}
+                onFetchNew={fetchNewTrends}
+              />
+            </div>
+          </div>
+        ) : (
+          /* Digests Tab */
+          <div className="max-w-3xl mx-auto">
+            <DigestList
+              onSelectDigest={loadDigest}
+              onSendToChat={(id, summary) => {
+                // TODO: Navigate to chat with context
+                console.log("Send to chat:", id, summary);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

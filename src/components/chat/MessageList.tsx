@@ -11,12 +11,12 @@ interface MessageListProps {
   messages: Message[];
   sessionTasks: Map<string, Task[]>;
   isLoading: boolean;
-  error: Error | null;
+  error: Error | null | undefined;
   hasContext: boolean;
   onTasksChange: (messageId: string, tasks: Task[]) => void;
   onStartDevelopment: () => void;
   onReload: () => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
