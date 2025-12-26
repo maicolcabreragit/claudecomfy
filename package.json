@@ -18,6 +18,7 @@
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-toast": "^1.2.15",
     "@tavily/core": "^0.6.3",
     "ai": "3.4.33",
     "class-variance-authority": "^0.7.1",

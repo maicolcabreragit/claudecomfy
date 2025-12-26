@@ -9,10 +9,13 @@ import {
   TrendList,
   AudioPlayer,
   LearningView,
+  PodcastQueuePanel,
   type Trend,
   type LearningData,
 } from "./components";
 import { DigestList } from "./components/DigestList";
+import { type PodcastFilter } from "./components/TrendFilters";
+import { usePodcastQueueStore } from "@/store/usePodcastQueueStore";
 
 type TabView = "explore" | "digests";
 
@@ -36,6 +39,10 @@ export default function TrendsPage() {
   // Filter state
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [podcastFilter, setPodcastFilter] = useState<PodcastFilter>("all");
+  
+  // Podcast queue state
+  const { queue, usedTrendIds, isInQueue, isUsed } = usePodcastQueueStore();
   
   // View state
   const [showLearning, setShowLearning] = useState(false);
@@ -77,8 +84,18 @@ export default function TrendsPage() {
     let result = trends;
     if (selectedDate) result = trendsByDate[selectedDate] || [];
     if (selectedCategory) result = result.filter((t) => t.category === selectedCategory);
+    
+    // Apply podcast filter
+    if (podcastFilter === "unused") {
+      result = result.filter((t) => !isUsed(t.id) && !isInQueue(t.id));
+    } else if (podcastFilter === "queued") {
+      result = result.filter((t) => isInQueue(t.id));
+    } else if (podcastFilter === "used") {
+      result = result.filter((t) => isUsed(t.id));
+    }
+    
     return result.sort((a, b) => b.heatScore - a.heatScore);
-  }, [trends, selectedDate, selectedCategory, trendsByDate]);
+  }, [trends, selectedDate, selectedCategory, trendsByDate, podcastFilter, isInQueue, isUsed]);
 
   const stats = useMemo(() => {
     const byCategory: Record<string, number> = {};
@@ -296,6 +313,8 @@ export default function TrendsPage() {
               categoryStats={stats.byCategory}
               onDateChange={setSelectedDate}
               onCategoryChange={setSelectedCategory}
+              podcastFilter={podcastFilter}
+              onPodcastFilterChange={setPodcastFilter}
             />
 
             <div className="flex-1 min-w-0">
@@ -321,6 +340,9 @@ export default function TrendsPage() {
           </div>
         )}
       </div>
+
+      {/* Podcast Queue Panel - Floating */}
+      <PodcastQueuePanel />
     </div>
   );
 }

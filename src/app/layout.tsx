@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout";
+import { Toaster } from "@/components/ui";
 
 // Inter - La mejor fuente sans-serif para UI moderna
 const inter = Inter({
@@ -13,7 +14,7 @@ const inter = Inter({
 // JetBrains Mono - La mejor fuente monospace para código
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
 
@@ -31,8 +32,10 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <AppShell>{children}</AppShell>
+        <Toaster />
       </body>
     </html>
   );
 }
+
 

@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   GraduationCap,
-  Flame,
-  Clock,
   MessageSquare,
   Archive,
   TrendingUp,
@@ -13,15 +11,14 @@ import {
   Zap,
   Target,
   Star,
-  Loader2,
   BookOpen,
-  Sparkles,
   Plus,
+  Flame,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { Badge, Progress } from "@/components/ui";
+import { StreakCard, TimeCard, StatsGrid, AchievementsList } from "@/components/academy";
 import { ModuleList } from "./components/ModuleList";
 import { CreateModuleModal } from "./components/CreateModuleModal";
 
@@ -56,20 +53,11 @@ interface LearningModule {
   updatedAt: string;
 }
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: typeof Trophy;
-  unlocked: boolean;
-  unlockedAt?: string;
-}
-
 // ============================================================================
 // Static Data (Achievements - will be dynamic later)
 // ============================================================================
 
-const ACHIEVEMENTS: Achievement[] = [
+const ACHIEVEMENTS = [
   {
     id: "first-chat",
     title: "Primera Conversación",
@@ -139,8 +127,7 @@ export default function AcademyPage() {
   const completedModules = modules.filter((m) => m.status === "COMPLETED").length;
   const streak = 3; // TODO: Calculate from module activity dates
   const todayMinutes = 47; // TODO: Track session time
-  const achievements = ACHIEVEMENTS;
-  const unlockedCount = achievements.filter((a) => a.unlocked).length;
+  const unlockedCount = ACHIEVEMENTS.filter((a) => a.unlocked).length;
 
   // Fetch modules
   const fetchModules = useCallback(async () => {
@@ -205,7 +192,7 @@ export default function AcademyPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">Academia</h1>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-foreground-muted">
                 Tu progreso hacia los 5000€/mes
               </p>
             </div>
@@ -216,43 +203,11 @@ export default function AcademyPage() {
           </Badge>
         </div>
 
-        {/* Stats Grid */}
+        {/* Streak & Time Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Streak */}
-          <Card className="relative overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/20 rounded-lg">
-                  <Flame className="h-5 w-5 text-orange-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{streak}</p>
-                  <p className="text-xs text-zinc-500">Días de racha</p>
-                </div>
-              </div>
-              {streak >= 7 && (
-                <div className="absolute top-2 right-2">
-                  <Sparkles className="h-4 w-4 text-yellow-400" />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Today's Time */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/20 rounded-lg">
-                  <Clock className="h-5 w-5 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{todayMinutes}m</p>
-                  <p className="text-xs text-zinc-500">Tiempo hoy</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+          <StreakCard days={streak} />
+          <TimeCard minutes={todayMinutes} />
+          
           {/* Active Modules */}
           <Card>
             <CardContent className="p-4">
@@ -261,12 +216,8 @@ export default function AcademyPage() {
                   <BookOpen className="h-5 w-5 text-purple-400" />
                 </div>
                 <div>
-                  {isLoadingModules ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
-                  ) : (
-                    <p className="text-2xl font-bold">{activeModules}</p>
-                  )}
-                  <p className="text-xs text-zinc-500">Cursos activos</p>
+                  <p className="text-2xl font-bold">{activeModules}</p>
+                  <p className="text-xs text-foreground-subtle">Cursos activos</p>
                 </div>
               </div>
             </CardContent>
@@ -276,20 +227,28 @@ export default function AcademyPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/20 rounded-lg">
-                  <Trophy className="h-5 w-5 text-green-400" />
+                <div className="p-2 bg-semantic-success/20 rounded-lg">
+                  <Trophy className="h-5 w-5 text-semantic-success" />
                 </div>
                 <div>
-                  {isLoadingModules ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
-                  ) : (
-                    <p className="text-2xl font-bold">{completedModules}</p>
-                  )}
-                  <p className="text-xs text-zinc-500">Completados</p>
+                  <p className="text-2xl font-bold">{completedModules}</p>
+                  <p className="text-xs text-foreground-subtle">Completados</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Stats Grid */}
+        <div>
+          <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+            📈 Estadísticas
+          </h2>
+          <StatsGrid
+            conversations={stats.conversations}
+            snippets={stats.snippets}
+            trends={stats.trends}
+          />
         </div>
 
         {/* Quick Actions */}
@@ -331,7 +290,7 @@ export default function AcademyPage() {
               <BookOpen className="h-5 w-5 text-purple-400" />
               Mis Cursos
             </h2>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-foreground-subtle">
               {activeModules} activos · {completedModules} completados
             </span>
           </div>
@@ -344,63 +303,19 @@ export default function AcademyPage() {
           />
         </div>
 
-        {/* Achievements Section */}
+        {/* Achievements Section - Using new component */}
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-400" />
+              <Trophy className="h-5 w-5 text-amber-400" />
               Logros
             </h2>
-            <span className="text-xs text-zinc-500">
-              {unlockedCount} desbloqueados
+            <span className="text-xs text-foreground-subtle">
+              {unlockedCount}/{ACHIEVEMENTS.length} desbloqueados
             </span>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {achievements.map((achievement) => {
-              const Icon = achievement.icon;
-              return (
-                <Card
-                  key={achievement.id}
-                  className={cn(
-                    "text-center transition-all",
-                    !achievement.unlocked && "opacity-50 grayscale"
-                  )}
-                >
-                  <CardContent className="p-4">
-                    <div
-                      className={cn(
-                        "w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center",
-                        achievement.unlocked
-                          ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/20"
-                          : "bg-surface-elevated"
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          "h-6 w-6",
-                          achievement.unlocked
-                            ? "text-yellow-400"
-                            : "text-zinc-600"
-                        )}
-                      />
-                    </div>
-                    <h4 className="text-xs font-medium mb-0.5 line-clamp-1">
-                      {achievement.title}
-                    </h4>
-                    <p className="text-[10px] text-zinc-500 line-clamp-2">
-                      {achievement.description}
-                    </p>
-                    {achievement.unlocked && (
-                      <Badge variant="success" size="sm" className="mt-2">
-                        ✓ Desbloqueado
-                      </Badge>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <AchievementsList achievements={ACHIEVEMENTS} />
         </div>
 
         {/* Goal Card */}
@@ -414,34 +329,29 @@ export default function AcademyPage() {
                 <h3 className="font-semibold text-lg mb-1">
                   Meta: 5000€/mes con AI Art
                 </h3>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-foreground-muted">
                   Completa los cursos, aplica las tendencias, y construye tu portfolio
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-gradient">0€</p>
-                <p className="text-xs text-zinc-500">Ingresos este mes</p>
+                <p className="text-xs text-foreground-subtle">Ingresos este mes</p>
               </div>
             </div>
 
             {/* Progress to goal */}
             <div className="mt-4">
-              <div className="flex justify-between text-xs text-zinc-500 mb-1">
+              <div className="flex justify-between text-xs text-foreground-subtle mb-1">
                 <span>Progreso hacia la meta</span>
                 <span>0%</span>
               </div>
-              <div className="h-3 bg-surface-elevated rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                  style={{ width: "0%" }}
-                />
-              </div>
+              <Progress value={0} size="md" />
             </div>
           </CardContent>
         </Card>
 
         {/* Footer note */}
-        <p className="text-center text-xs text-zinc-600">
+        <p className="text-center text-xs text-foreground-subtle">
           💡 Tip: Pregunta &quot;cómo hacer...&quot; en el chat para crear cursos automáticamente
         </p>
       </div>

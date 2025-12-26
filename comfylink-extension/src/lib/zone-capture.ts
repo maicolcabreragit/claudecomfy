@@ -9,14 +9,27 @@ interface CaptureRegion {
   height: number;
 }
 
+export interface ZoneCaptureOptions {
+  /** If true, caller should open annotation editor after capture. Default: true */
+  openEditor?: boolean;
+}
+
+export interface ZoneCaptureResult {
+  image: string;
+  openEditor: boolean;
+}
+
 let overlay: HTMLDivElement | null = null;
 let selection: HTMLDivElement | null = null;
 let startX = 0;
 let startY = 0;
 let isSelecting = false;
 
-export function startZoneCapture(): Promise<string | null> {
+export function startZoneCapture(options: ZoneCaptureOptions = {}): Promise<ZoneCaptureResult | null> {
+  const { openEditor = true } = options;
+  
   return new Promise((resolve) => {
+
     // Create overlay
     overlay = document.createElement("div");
     overlay.style.cssText = `
@@ -121,8 +134,12 @@ export function startZoneCapture(): Promise<string | null> {
       }
 
       // Capture the region
-      const result = await captureRegion(region);
-      resolve(result);
+      const imageResult = await captureRegion(region);
+      if (imageResult) {
+        resolve({ image: imageResult, openEditor });
+      } else {
+        resolve(null);
+      }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {

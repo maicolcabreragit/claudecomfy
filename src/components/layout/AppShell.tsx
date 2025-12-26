@@ -10,23 +10,31 @@ interface AppShellProps {
 /**
  * AppShell - Contenedor principal de la aplicación
  * 
- * Layout: TopBar + Sidebar + Main Content
- * El sidebar es colapsable y el contenido ocupa el resto.
+ * Layout:
+ * ┌─────────────────────────────────────────────────────────┐
+ * │                     TopBar (48px)                       │
+ * ├────────────┬────────────────────────────────────────────┤
+ * │   Sidebar  │             Main Content                   │
+ * │   (240px)  │                                            │
+ * │            │                                            │
+ * └────────────┴────────────────────────────────────────────┘
  */
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar - Fixed width, collapsable */}
       <Sidebar />
 
-      {/* Main area */}
+      {/* Main area - Flexible */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* TopBar */}
+        {/* TopBar - Fixed 48px height */}
         <TopBar />
 
-        {/* Content */}
-        <main className="flex-1 overflow-hidden">
-          {children}
+        {/* Content area - Scrollable, with consistent padding */}
+        <main className="flex-1 overflow-auto">
+          <div className="h-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>

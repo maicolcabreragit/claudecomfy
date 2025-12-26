@@ -1,6 +1,7 @@
 import type { PlasmoCSConfig } from "plasmo";
-import { useState, useEffect } from "react";
-import { startZoneCapture } from "~lib/zone-capture";
+import { useState, useEffect, useCallback } from "react";
+import { startZoneCapture, type ZoneCaptureResult } from "~lib/zone-capture";
+import { AnnotationEditorUI } from "~components/AnnotationEditorUI";
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"],
@@ -16,6 +17,9 @@ function ComfyLinkOverlay() {
   const [capturing, setCapturing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [mode, setMode] = useState<"full" | "zone">("full");
+  
+  // Editor state
+  const [editorImage, setEditorImage] = useState<string | null>(null);
 
   useEffect(() => {
     // Listen for messages from background
@@ -41,20 +45,52 @@ function ComfyLinkOverlay() {
 
   const handleZoneCapture = async () => {
     setVisible(false); // Hide overlay during zone capture
-    const image = await startZoneCapture();
-    setVisible(true);
+    const result = await startZoneCapture({ openEditor: true });
     
-    if (image) {
-      // Send the zone capture
-      chrome.runtime.sendMessage({
-        action: "sendZoneCapture",
-        image,
-        url: window.location.href,
-      });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
+    if (result && result.openEditor) {
+      // Open annotation editor
+      setEditorImage(result.image);
+    } else if (result) {
+      // Direct send without editor
+      sendImageToChat(result.image);
+      setVisible(true);
+    } else {
+      setVisible(true);
     }
   };
+
+  const sendImageToChat = useCallback((image: string) => {
+    chrome.runtime.sendMessage({
+      action: "sendZoneCapture",
+      image,
+      url: window.location.href,
+    });
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 2000);
+  }, []);
+
+  const handleEditorSave = useCallback((annotatedImage: string) => {
+    setEditorImage(null);
+    setVisible(true);
+    sendImageToChat(annotatedImage);
+  }, [sendImageToChat]);
+
+  const handleEditorCancel = useCallback(() => {
+    setEditorImage(null);
+    setVisible(true);
+  }, []);
+
+  // Show annotation editor if image is set
+  if (editorImage) {
+    return (
+      <AnnotationEditorUI
+        image={editorImage}
+        onSave={handleEditorSave}
+        onCancel={handleEditorCancel}
+      />
+    );
+  }
+
 
   if (!visible) {
     return (

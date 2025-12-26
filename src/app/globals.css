@@ -3,34 +3,53 @@
 @tailwind utilities;
 
 /* ============================================================================
-   COMFYCLAUDE OS - Premium Design System
+   COMFYCLAUDE ACADEMY - Absolutist Design System
+   ============================================================================
+   Optimizado para:
+   - Sesiones de aprendizaje de 2-4 horas
+   - Lectura de documentación técnica
+   - Reducción de fatiga visual (modo oscuro obligatorio)
+   - Jerarquía visual clara para contenido denso
+   ============================================================================ */
+
+/* ============================================================================
+   SECTION 1: DESIGN TOKENS
    ============================================================================ */
 
 :root {
   /* ========== COLORS - Core ========== */
   --background: #09090b;
   --foreground: #fafafa;
+  --foreground-muted: #a1a1aa;
+  --foreground-subtle: #71717a;
+
+  /* Accent colors (RGB for alpha support) */
   --accent-purple: 168 85 247;
   --accent-pink: 236 72 153;
 
   /* ========== COLORS - Semantic ========== */
-  --color-success: 34 197 94; /* green-500 */
-  --color-success-muted: 22 101 52; /* green-800 */
-  --color-warning: 234 179 8; /* yellow-500 */
-  --color-warning-muted: 133 77 14; /* yellow-800 */
-  --color-error: 239 68 68; /* red-500 */
-  --color-error-muted: 127 29 29; /* red-900 */
-  --color-info: 59 130 246; /* blue-500 */
-  --color-info-muted: 30 64 175; /* blue-800 */
+  --color-success: 34 197 94;
+  --color-success-muted: 22 101 52;
+  --color-warning: 234 179 8;
+  --color-warning-muted: 133 77 14;
+  --color-destructive: 239 68 68;
+  --color-destructive-muted: 127 29 29;
+  --color-info: 59 130 246;
+  --color-info-muted: 30 64 175;
 
   /* ========== SURFACES - 3 Levels ========== */
-  --surface-base: #0a0a0c; /* Cards, main content */
-  --surface-elevated: #141417; /* Modals, dropdowns, hover states */
-  --surface-overlay: #1c1c21; /* Tooltips, popovers, highest z-index */
-  --surface-border: rgba(63, 63, 70, 0.5);
-  --surface-border-subtle: rgba(63, 63, 70, 0.25);
+  --surface-base: #09090b; /* Fondo principal */
+  --surface-elevated: #18181b; /* Cards, modales */
+  --surface-overlay: #27272a; /* Elementos flotantes */
+
+  /* Borders with opacity */
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-accent: rgba(168, 85, 247, 0.4);
 
   /* ========== SPACING - 4px Base ========== */
+  --space-0: 0px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -43,24 +62,37 @@
   --space-12: 48px;
   --space-14: 56px;
   --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
 
-  /* ========== TYPOGRAPHY - Scale ========== */
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-md: 17px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 28px;
-  --text-3xl: 32px;
+  /* ========== TYPOGRAPHY - Modular Scale (ratio 1.25) ========== */
+  /* Base: 16px → 12.8 → 16 → 20 → 25 → 31.25 → 39 */
+  --text-xs: 0.8rem; /* 12.8px */
+  --text-sm: 0.875rem; /* 14px */
+  --text-base: 1rem; /* 16px */
+  --text-md: 1.125rem; /* 18px */
+  --text-lg: 1.25rem; /* 20px */
+  --text-xl: 1.5rem; /* 24px */
+  --text-2xl: 1.875rem; /* 30px */
+  --text-3xl: 2.25rem; /* 36px */
+  --text-4xl: 3rem; /* 48px */
 
-  /* Line heights for readability */
+  /* Line heights optimized for readability */
+  --leading-none: 1;
   --leading-tight: 1.25;
+  --leading-snug: 1.375;
   --leading-normal: 1.5;
-  --leading-relaxed: 1.7;
+  --leading-relaxed: 1.625;
   --leading-loose: 2;
 
+  /* Letter spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+
   /* ========== RADIUS ========== */
+  --radius-none: 0;
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -69,35 +101,46 @@
   --radius-full: 9999px;
 
   /* ========== SHADOWS ========== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
-    0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5),
+    0 2px 4px -2px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
     0 4px 6px -4px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
     0 8px 10px -6px rgba(0, 0, 0, 0.4);
 
-  /* Glow shadows for accent elements */
-  --glow-purple-sm: 0 0 10px rgba(168, 85, 247, 0.3);
-  --glow-purple-md: 0 0 20px rgba(168, 85, 247, 0.4);
-  --glow-purple-lg: 0 0 30px rgba(168, 85, 247, 0.5),
-    0 0 60px rgba(168, 85, 247, 0.2);
-  --glow-pink-sm: 0 0 10px rgba(236, 72, 153, 0.3);
-  --glow-pink-md: 0 0 20px rgba(236, 72, 153, 0.4);
+  /* Glow shadows */
+  --glow-purple-sm: 0 0 10px rgba(168, 85, 247, 0.25);
+  --glow-purple-md: 0 0 20px rgba(168, 85, 247, 0.35);
+  --glow-purple-lg: 0 0 30px rgba(168, 85, 247, 0.45);
 
-  /* ========== ANIMATIONS ========== */
-  --transition-fast: 150ms;
-  --transition-normal: 250ms;
-  --transition-slow: 400ms;
+  /* ========== TRANSITIONS ========== */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --easing-default: ease-out;
   --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ========== Z-INDEX Scale ========== */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 300;
+  --z-popover: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+  --z-overlay: 9999;
 }
 
 /* ============================================================================
-   BASE STYLES
+   SECTION 2: BASE STYLES
    ============================================================================ */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -105,11 +148,12 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
-html,
 body {
-  height: 100%;
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -120,20 +164,28 @@ body {
 
 /* Font families */
 .font-sans {
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    sans-serif;
 }
 
 .font-mono {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace,
+    monospace;
+}
+
+/* Selection */
+::selection {
+  background: rgba(168, 85, 247, 0.3);
+  color: var(--foreground);
 }
 
 /* ============================================================================
-   CUSTOM SCROLLBAR
+   SECTION 3: SCROLLBAR
    ============================================================================ */
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -141,174 +193,198 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(113, 113, 122, 0.4);
-  border-radius: 999px;
-  transition: background var(--transition-normal) var(--easing-smooth);
+  background: rgba(113, 113, 122, 0.3);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(113, 113, 122, 0.7);
+  background: rgba(113, 113, 122, 0.5);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
-/* ============================================================================
-   PROSE (Markdown) OVERRIDES
-   ============================================================================ */
-
-.prose {
-  --tw-prose-body: #d4d4d8;
-  --tw-prose-headings: #fafafa;
-  --tw-prose-links: #a855f7;
-  --tw-prose-bold: #fafafa;
-  --tw-prose-code: #c4b5fd;
-  --tw-prose-pre-bg: #18181b;
-  --tw-prose-pre-code: #d4d4d8;
-  line-height: 1.7;
-  letter-spacing: -0.01em;
-}
-
-.prose pre {
-  margin: 1rem 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  max-height: 300px;
-  overflow-y: auto;
-  border-radius: 8px;
-  border: 1px solid rgba(63, 63, 70, 0.5);
-  position: relative;
-}
-
-.prose pre code {
-  font-size: 0.8125rem;
-  line-height: 1.6;
-}
-
-.prose code {
-  font-size: 0.875rem;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  background: rgba(63, 63, 70, 0.4);
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-}
-
-.prose pre code {
+::-webkit-scrollbar-corner {
   background: transparent;
-  padding: 0;
 }
 
-.prose p {
-  margin-bottom: 0.875em;
-}
-
-.prose ul,
-.prose ol {
-  margin: 0.5em 0;
-  padding-left: 1.25em;
-}
-
-.prose li {
-  margin: 0.25em 0;
-}
-
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4 {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
-  font-weight: 600;
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(113, 113, 122, 0.3) transparent;
 }
 
 /* ============================================================================
-   MARKDOWN ALERT BLOCKS (GitHub-style)
-   [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+   SECTION 4: FOCUS STATES (Accesibilidad)
    ============================================================================ */
 
-.alert-block {
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-  border-left: 4px solid;
-  display: flex;
-  gap: 0.75rem;
+/* Default focus-visible for all focusable elements */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(168, 85, 247, 0.5);
 }
 
-.alert-block .alert-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+/* Focus ring utility class */
+.focus-ring {
+  outline: none;
+  transition: box-shadow var(--duration-fast) var(--easing-default);
 }
 
-.alert-block .alert-content {
-  flex: 1;
-  min-width: 0;
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(168, 85, 247, 0.5);
 }
 
-.alert-block .alert-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-/* NOTE - Blue */
-.alert-note {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
-}
-.alert-note .alert-icon {
-  color: #3b82f6;
-}
-.alert-note .alert-title {
-  color: #60a5fa;
-}
-
-/* TIP - Green */
-.alert-tip {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: #22c55e;
-}
-.alert-tip .alert-icon {
-  color: #22c55e;
-}
-.alert-tip .alert-title {
-  color: #4ade80;
-}
-
-/* IMPORTANT - Purple */
-.alert-important {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: #a855f7;
-}
-.alert-important .alert-icon {
-  color: #a855f7;
-}
-.alert-important .alert-title {
-  color: #c084fc;
-}
-
-/* WARNING - Yellow */
-.alert-warning {
-  background: rgba(234, 179, 8, 0.1);
-  border-color: #eab308;
-}
-.alert-warning .alert-icon {
-  color: #eab308;
-}
-.alert-warning .alert-title {
-  color: #facc15;
-}
-
-/* CAUTION - Red */
-.alert-caution {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-}
-.alert-caution .alert-icon {
-  color: #ef4444;
-}
-.alert-caution .alert-title {
-  color: #f87171;
+/* Keyboard-only focus (no focus on click) */
+.focus-ring-keyboard:focus:not(:focus-visible) {
+  box-shadow: none;
 }
 
 /* ============================================================================
-   ANIMATIONS
+   SECTION 5: TRANSITIONS (Micro-interacciones consistentes)
+   ============================================================================ */
+
+/* Base transition for all interactive elements */
+button,
+a,
+input,
+textarea,
+select,
+[role="button"] {
+  transition-property: color, background-color, border-color, box-shadow,
+    transform, opacity;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--easing-default);
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform var(--duration-fast) var(--easing-default),
+    box-shadow var(--duration-fast) var(--easing-default);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Active press effect */
+.active-press:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================================
+   SECTION 6: UTILITY CLASSES
+   ============================================================================ */
+
+/* Surface backgrounds */
+.bg-surface-base {
+  background-color: var(--surface-base);
+}
+.bg-surface-elevated {
+  background-color: var(--surface-elevated);
+}
+.bg-surface-overlay {
+  background-color: var(--surface-overlay);
+}
+
+/* Border utilities */
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+.border-default {
+  border-color: var(--border-default);
+}
+.border-strong {
+  border-color: var(--border-strong);
+}
+.border-accent {
+  border-color: var(--border-accent);
+}
+
+/* Text utilities */
+.text-muted {
+  color: var(--foreground-muted);
+}
+.text-subtle {
+  color: var(--foreground-subtle);
+}
+
+/* Semantic colors */
+.text-success {
+  color: rgb(var(--color-success));
+}
+.text-warning {
+  color: rgb(var(--color-warning));
+}
+.text-destructive {
+  color: rgb(var(--color-destructive));
+}
+.text-info {
+  color: rgb(var(--color-info));
+}
+
+.bg-success-muted {
+  background-color: rgba(var(--color-success), 0.1);
+}
+.bg-warning-muted {
+  background-color: rgba(var(--color-warning), 0.1);
+}
+.bg-destructive-muted {
+  background-color: rgba(var(--color-destructive), 0.1);
+}
+.bg-info-muted {
+  background-color: rgba(var(--color-info), 0.1);
+}
+
+/* Text gradient */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent-purple)),
+    rgb(var(--accent-pink))
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect (subtle) */
+.glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(24, 24, 27, 0.8);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Card utilities */
+.card-base {
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--duration-fast) var(--easing-default);
+}
+
+.card-base:hover {
+  border-color: var(--border-accent);
+}
+
+.card-interactive {
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-default);
+}
+
+.card-interactive:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--glow-purple-sm);
+  transform: translateY(-2px);
+}
+
+/* ============================================================================
+   SECTION 7: ANIMATIONS
    ============================================================================ */
 
 /* Fade In */
@@ -322,14 +398,14 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn var(--transition-normal) var(--easing-smooth);
+  animation: fadeIn var(--duration-normal) var(--easing-smooth);
 }
 
 /* Fade In Up */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -338,30 +414,14 @@ body {
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp var(--transition-slow) var(--easing-smooth);
-}
-
-/* Slide In Right */
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in-right {
-  animation: slideInRight var(--transition-normal) var(--easing-smooth);
+  animation: fadeInUp var(--duration-normal) var(--easing-smooth);
 }
 
 /* Scale In */
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -370,37 +430,7 @@ body {
 }
 
 .animate-scale-in {
-  animation: scaleIn var(--transition-normal) var(--easing-bounce);
-}
-
-/* Pulse Subtle */
-@keyframes pulseSubtle {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.animate-pulse-subtle {
-  animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Glow Pulse */
-@keyframes glowPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
-  }
-}
-
-.animate-glow-pulse {
-  animation: glowPulse 2s ease-in-out infinite;
+  animation: scaleIn var(--duration-fast) var(--easing-smooth);
 }
 
 /* Shimmer (loading skeleton) */
@@ -416,143 +446,33 @@ body {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(39, 39, 42, 0.3) 25%,
-    rgba(63, 63, 70, 0.5) 50%,
-    rgba(39, 39, 42, 0.3) 75%
+    var(--surface-elevated) 25%,
+    var(--surface-overlay) 50%,
+    var(--surface-elevated) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Float */
-@keyframes float {
+/* Pulse subtle */
+@keyframes pulseSubtle {
   0%,
   100% {
-    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translateY(-5px);
+    opacity: 0.7;
   }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-/* ============================================================================
-   UTILITY CLASSES
-   ============================================================================ */
-
-/* Glass effect */
-.glass {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(24, 24, 27, 0.8);
-  border: 1px solid rgba(63, 63, 70, 0.5);
-}
-
-/* Gradient borders */
-.gradient-border {
-  position: relative;
-}
-
-.gradient-border::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--accent-purple)),
-    rgb(var(--accent-pink))
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-
-/* Focus ring */
-.focus-ring {
-  outline: none;
-  transition: box-shadow var(--transition-fast) var(--easing-smooth);
-}
-
-.focus-ring:focus-visible {
-  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgb(var(--accent-purple));
-}
-
-/* Smooth transitions for all interactive elements */
-button,
-a,
-input,
-textarea,
-select {
-  transition-property: color, background-color, border-color, box-shadow,
-    transform, opacity;
-  transition-duration: var(--transition-fast);
-  transition-timing-function: var(--easing-smooth);
-}
-
-/* Hover lift effect */
-.hover-lift {
-  transition: transform var(--transition-normal) var(--easing-smooth),
-    box-shadow var(--transition-normal) var(--easing-smooth);
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Active press effect */
-.active-press:active {
-  transform: scale(0.98);
-}
-
-/* Text gradient */
-.text-gradient {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--accent-purple)),
-    rgb(var(--accent-pink))
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Glow effect on hover */
-.glow-hover {
-  transition: box-shadow var(--transition-normal) var(--easing-smooth);
-}
-
-.glow-hover:hover {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-}
-
-/* ============================================================================
-   SELECTION STYLES
-   ============================================================================ */
-
-::selection {
-  background: rgba(168, 85, 247, 0.3);
-  color: #fafafa;
-}
-
-/* ============================================================================
-   MESSAGE BUBBLES ANIMATIONS
-   ============================================================================ */
-
-.message-bubble {
-  animation: fadeInUp var(--transition-slow) var(--easing-smooth);
+.animate-pulse-subtle {
+  animation: pulseSubtle 2s ease-in-out infinite;
 }
 
 /* Staggered animation for lists */
 .stagger-item {
   opacity: 0;
-  animation: fadeInUp var(--transition-slow) var(--easing-smooth) forwards;
+  animation: fadeInUp var(--duration-normal) var(--easing-smooth) forwards;
 }
 
 .stagger-item:nth-child(1) {
@@ -570,129 +490,67 @@ select {
 .stagger-item:nth-child(5) {
   animation-delay: 200ms;
 }
-.stagger-item:nth-child(6) {
-  animation-delay: 250ms;
-}
-.stagger-item:nth-child(7) {
-  animation-delay: 300ms;
-}
-.stagger-item:nth-child(8) {
-  animation-delay: 350ms;
-}
-.stagger-item:nth-child(9) {
-  animation-delay: 400ms;
-}
-.stagger-item:nth-child(10) {
-  animation-delay: 450ms;
-}
 
 /* ============================================================================
-   COMFYCLAUDE ACADEMY - Utility Classes
+   SECTION 8: PROSE STYLES (Documentación técnica)
    ============================================================================ */
 
-/* Surface backgrounds */
-.bg-surface-base {
-  background-color: var(--surface-base);
+.prose {
+  --tw-prose-body: #d4d4d8;
+  --tw-prose-headings: #fafafa;
+  --tw-prose-links: rgb(var(--accent-purple));
+  --tw-prose-bold: #fafafa;
+  --tw-prose-code: #c4b5fd;
+  --tw-prose-pre-bg: var(--surface-elevated);
+  --tw-prose-pre-code: #d4d4d8;
+  line-height: var(--leading-relaxed);
+  letter-spacing: var(--tracking-tight);
 }
 
-.bg-surface-elevated {
+.prose pre {
   background-color: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace,
+    monospace;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.bg-surface-overlay {
-  background-color: var(--surface-overlay);
+.prose pre code {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
 }
 
-/* Semantic color utilities */
-.text-success {
-  color: rgb(var(--color-success));
+.prose code {
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace,
+    monospace;
+  font-size: 0.875em;
+  background: rgba(63, 63, 70, 0.4);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  color: #c4b5fd;
 }
 
-.text-warning {
-  color: rgb(var(--color-warning));
-}
-
-.text-error {
-  color: rgb(var(--color-error));
-}
-
-.text-info {
-  color: rgb(var(--color-info));
-}
-
-.bg-success-muted {
-  background-color: rgba(var(--color-success), 0.1);
-}
-
-.bg-warning-muted {
-  background-color: rgba(var(--color-warning), 0.1);
-}
-
-.bg-error-muted {
-  background-color: rgba(var(--color-error), 0.1);
-}
-
-.bg-info-muted {
-  background-color: rgba(var(--color-info), 0.1);
-}
-
-/* Card base - Standard card styling */
-.card-base {
-  background-color: var(--surface-base);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  transition: border-color var(--transition-fast) var(--easing-smooth),
-              box-shadow var(--transition-fast) var(--easing-smooth);
-}
-
-.card-base:hover {
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
-/* Card elevated - For modals and floating elements */
-.card-elevated {
-  background-color: var(--surface-elevated);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Card interactive - With glow on hover */
-.card-interactive {
-  background-color: var(--surface-base);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  cursor: pointer;
-  transition: all var(--transition-normal) var(--easing-smooth);
-}
-
-.card-interactive:hover {
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: var(--glow-purple-sm);
-  transform: translateY(-2px);
+.prose pre code {
+  background: transparent;
+  padding: 0;
 }
 
 /* ============================================================================
-   PROSE ACADEMY - Optimized for Technical Documentation
-   Designed for 2-4 hour learning sessions with max readability
+   SECTION 9: PROSE ACADEMY (Optimizado para aprendizaje prolongado)
    ============================================================================ */
 
 .prose-academy {
-  /* Base typography */
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   color: #d4d4d8;
-  letter-spacing: -0.01em;
-  
-  /* Optimal reading width */
+  letter-spacing: var(--tracking-tight);
   max-width: 72ch;
 }
 
 .prose-academy p {
-  margin-bottom: 1em;
+  margin-bottom: 1.25em;
 }
 
 .prose-academy h1,
@@ -701,7 +559,7 @@ select {
 .prose-academy h4 {
   color: var(--foreground);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
   margin-top: 2em;
   margin-bottom: 0.75em;
 }
@@ -714,7 +572,7 @@ select {
 .prose-academy h2 {
   font-size: var(--text-xl);
   line-height: var(--leading-tight);
-  border-bottom: 1px solid var(--surface-border);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 0.5em;
 }
 
@@ -724,23 +582,23 @@ select {
 
 .prose-academy h4 {
   font-size: var(--text-md);
-  color: #a1a1aa;
+  color: var(--foreground-muted);
 }
 
-/* Code blocks optimized for ComfyUI nodes/workflows */
 .prose-academy pre {
   background-color: var(--surface-elevated);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   margin: 1.5em 0;
   overflow-x: auto;
   font-size: var(--text-sm);
-  line-height: 1.6;
+  line-height: var(--leading-relaxed);
 }
 
 .prose-academy code {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace,
+    monospace;
   font-size: var(--text-sm);
   background-color: rgba(63, 63, 70, 0.4);
   padding: 0.15em 0.4em;
@@ -754,7 +612,6 @@ select {
   color: inherit;
 }
 
-/* Lists with proper spacing */
 .prose-academy ul,
 .prose-academy ol {
   margin: 1em 0;
@@ -769,28 +626,25 @@ select {
   color: rgb(var(--accent-purple));
 }
 
-/* Links styled for visibility */
 .prose-academy a {
   color: rgb(var(--accent-purple));
   text-decoration: underline;
   text-underline-offset: 2px;
-  transition: color var(--transition-fast) var(--easing-smooth);
+  transition: color var(--duration-fast) var(--easing-default);
 }
 
 .prose-academy a:hover {
   color: rgb(var(--accent-pink));
 }
 
-/* Blockquotes for important notes */
 .prose-academy blockquote {
   border-left: 3px solid rgb(var(--accent-purple));
   padding-left: var(--space-4);
   margin: 1.5em 0;
-  color: #a1a1aa;
+  color: var(--foreground-muted);
   font-style: italic;
 }
 
-/* Tables for structured data */
 .prose-academy table {
   width: 100%;
   border-collapse: collapse;
@@ -800,7 +654,7 @@ select {
 
 .prose-academy th,
 .prose-academy td {
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-subtle);
   padding: var(--space-3);
   text-align: left;
 }
@@ -815,54 +669,305 @@ select {
   background-color: rgba(24, 24, 27, 0.5);
 }
 
-/* Images and figures */
 .prose-academy img {
   border-radius: var(--radius-md);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border-subtle);
   margin: 1.5em 0;
 }
 
-.prose-academy figure {
-  margin: 1.5em 0;
-}
-
-.prose-academy figcaption {
-  font-size: var(--text-sm);
-  color: #71717a;
-  text-align: center;
-  margin-top: 0.5em;
-}
-
-/* Horizontal rules */
 .prose-academy hr {
   border: none;
-  border-top: 1px solid var(--surface-border);
+  border-top: 1px solid var(--border-subtle);
   margin: 2em 0;
 }
 
-/* Strong and emphasis */
 .prose-academy strong {
   color: var(--foreground);
   font-weight: 600;
 }
 
 .prose-academy em {
-  color: #a1a1aa;
+  color: var(--foreground-muted);
 }
 
-/* Definition lists for terminology */
-.prose-academy dl {
-  margin: 1em 0;
+/* ============================================================================
+   SECTION 10: ALERT BLOCKS (GitHub-style)
+   ============================================================================ */
+
+.alert-block {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
+  border-left: 4px solid;
+  display: flex;
+  gap: var(--space-3);
 }
 
-.prose-academy dt {
+.alert-block .alert-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.alert-block .alert-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-block .alert-title {
   font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+/* NOTE - Blue */
+.alert-note {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgb(var(--color-info));
+}
+.alert-note .alert-icon {
+  color: rgb(var(--color-info));
+}
+.alert-note .alert-title {
+  color: #60a5fa;
+}
+
+/* TIP - Green */
+.alert-tip {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgb(var(--color-success));
+}
+.alert-tip .alert-icon {
+  color: rgb(var(--color-success));
+}
+.alert-tip .alert-title {
+  color: #4ade80;
+}
+
+/* IMPORTANT - Purple */
+.alert-important {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgb(var(--accent-purple));
+}
+.alert-important .alert-icon {
+  color: rgb(var(--accent-purple));
+}
+.alert-important .alert-title {
+  color: #c084fc;
+}
+
+/* WARNING - Yellow */
+.alert-warning {
+  background: rgba(234, 179, 8, 0.08);
+  border-color: rgb(var(--color-warning));
+}
+.alert-warning .alert-icon {
+  color: rgb(var(--color-warning));
+}
+.alert-warning .alert-title {
+  color: #facc15;
+}
+
+/* CAUTION - Red */
+.alert-caution {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgb(var(--color-destructive));
+}
+.alert-caution .alert-icon {
+  color: rgb(var(--color-destructive));
+}
+.alert-caution .alert-title {
+  color: #f87171;
+}
+
+/* ============================================================================
+   SECTION 11: TYPOGRAPHY SYSTEM
+   ============================================================================
+   Sistema tipográfico optimizado para aprendizaje técnico prolongado.
+   
+   USO:
+   - .text-prose  → Contenido de lecciones/documentación (max 65ch)
+   - .text-ui     → Elementos de interfaz (botones, labels, navegación)
+   - .text-mono   → Código y datos técnicos
+   
+   EJEMPLO:
+   <article class="text-prose">
+     <h1>Título de Lección</h1>
+     <p>Contenido con <code class="text-mono">código inline</code></p>
+   </article>
+   
+   <nav class="text-ui">
+     <button>Acción</button>
+   </nav>
+   ============================================================================ */
+
+/* --------------------------------------------------------------------------
+   .text-prose - Para contenido de lecciones (max-width: 65ch)
+   Optimizado para lectura prolongada de documentación técnica
+   -------------------------------------------------------------------------- */
+.text-prose {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.6;
+  color: #d4d4d8;
+  letter-spacing: -0.01em;
+  max-width: 65ch;
+  
+  /* Optical adjustments for reading */
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+.text-prose p {
+  margin-bottom: 1.25em;
+}
+
+.text-prose strong {
   color: var(--foreground);
-  margin-top: 1em;
+  font-weight: 600;
 }
 
-.prose-academy dd {
-  margin-left: 1.5em;
-  color: #a1a1aa;
+.text-prose em {
+  color: var(--foreground-muted);
 }
 
+/* Headings within prose */
+.text-prose h1,
+.text-prose-h1 {
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 0.75em;
+}
+
+.text-prose h2,
+.text-prose-h2 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.text-prose h3,
+.text-prose-h3 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+  letter-spacing: -0.015em;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+}
+
+.text-prose h4,
+.text-prose-h4 {
+  font-size: 1rem; /* 16px */
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--foreground-muted);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+/* --------------------------------------------------------------------------
+   .text-ui - Para elementos de interfaz
+   Compacto, legible, optimizado para escaneo rápido
+   -------------------------------------------------------------------------- */
+.text-ui {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+  color: var(--foreground);
+  letter-spacing: -0.005em;
+  font-feature-settings: "tnum"; /* Tabular numbers for alignment */
+}
+
+.text-ui-sm {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.4;
+  color: var(--foreground-muted);
+}
+
+.text-ui-xs {
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.4;
+  color: var(--foreground-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------------------------------
+   .text-mono - Para código y datos técnicos
+   JetBrains Mono con ligatures para mejor legibilidad de código
+   -------------------------------------------------------------------------- */
+.text-mono {
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.6;
+  color: #c4b5fd; /* Purple tint for code */
+  font-feature-settings: "liga", "calt"; /* Ligatures */
+}
+
+.text-mono-sm {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+}
+
+/* Inline code styling */
+.text-mono-inline {
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.4;
+  color: #c4b5fd;
+  background-color: rgba(63, 63, 70, 0.4);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+/* Code block styling */
+.text-mono-block {
+  font-family: var(--font-jetbrains-mono), var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+  color: #d4d4d8;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Utility: Metadata & Labels
+   -------------------------------------------------------------------------- */
+.text-label {
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--foreground-muted);
+  letter-spacing: 0.01em;
+}
+
+.text-badge {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 600;
+  line-height: 1;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.text-timestamp {
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--foreground-subtle);
+  font-variant-numeric: tabular-nums;
+}

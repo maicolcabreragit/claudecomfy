@@ -302,3 +302,89 @@ enum LearningStatus {
   PAUSED
 }
 
+// =============================================================================
+// PODCAST SYSTEM - Professional Audio Generation
+// =============================================================================
+
+model PodcastEpisode {
+  id                 String        @id @default(uuid())
+  episodeNumber      Int           @default(0)
+  title              String
+  description        String?       @db.Text
+  script             String        @db.Text          // Full script text with SSML markers
+  audioUrl           String?                         // Path to generated audio file
+  audioDuration      Int?                            // Duration in seconds
+  audioSize          Int?                            // File size in bytes
+  voiceId            String
+  voiceSettings      Json?                           // {stability, similarity_boost, style}
+  status             PodcastStatus @default(DRAFT)
+  publishedPlatforms String[]                        // ["spotify", "ivoox", "youtube"]
+  publishedAt        DateTime?
+  trendIds           String[]                        // Related Trend IDs
+  digestId           String?                         // Related TrendDigest ID
+  creditsUsed        Int?                            // ElevenLabs credits consumed
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PodcastConfig {
+  id                   String   @id @default(uuid())
+  podcastName            String   @default("IA Sin Filtros")
+  podcastDescription     String?  @db.Text
+  podcastDescriptionLong String?  @db.Text              // Full description for web
+  coverArtUrl            String?                        // 2048x2048 cover image URL
+  category               String?  @default("Technology")
+  keywords               String[]                       // SEO keywords
+  introScript            String?  @db.Text              // Fixed intro text with SSML
+  outroScript            String?  @db.Text              // Fixed outro text with SSML
+  defaultVoiceId         String?
+  defaultVoiceSettings   Json?                          // Default TTS settings
+  contentTone            String   @default("casual")    // "formal", "casual", "energetic"
+  characterPhrases       String[]                       // Signature phrases for consistency
+  targetDuration         Int      @default(300)         // Target duration in seconds
+  publishFrequency       String?                        // "weekly", "daily", etc
+  publishDay             String?  @default("monday")    // Day of week
+  publishTime            String?  @default("09:00")     // Time of day
+  monthlyCreditsLimit    Int?                           // Optional credits limit
+  creditsAlertThreshold  Int?     @default(10000)       // Alert when credits below
+  spotifyShowId          String?                        // For tracking/analytics
+  spotifyShowUrl         String?
+  ivooxShowId            String?
+  ivooxShowUrl           String?
+  applePodcastId         String?
+  applePodcastUrl        String?
+  youtubeChannelId       String?
+  youtubeChannelUrl      String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model VoiceMetadata {
+  id            String   @id                          // ElevenLabs voice_id
+  name          String
+  language      String   @default("es")
+  accent        String?                               // "spain", "mexico", "argentina", "colombia"
+  gender        String?                               // "male", "female", "neutral"
+  ageGroup      String?                               // "young", "middle", "mature"
+  style         String[]                              // ["narrative", "conversational", "energetic"]
+  podcastScore  Int      @default(5)                  // 1-10 rating for podcast suitability
+  isRecommended Boolean  @default(false)
+  sampleUrl     String?
+  lastFetched   DateTime @default(now())
+
+  @@index([language])
+  @@index([podcastScore])
+  @@index([isRecommended])
+}
+
+enum PodcastStatus {
+  DRAFT
+  GENERATING
+  READY
+  PUBLISHED
+  FAILED
+}
+
